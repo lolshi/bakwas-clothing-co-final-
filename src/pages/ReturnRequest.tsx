@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import OrderSelector from '@/components/returns/OrderSelector';
+import ItemSelector from '@/components/returns/ItemSelector';
+import RequestTypeSelector from '@/components/returns/RequestTypeSelector';
+import ReasonSelector from '@/components/returns/ReasonSelector';
+import PhotoUpload from '@/components/returns/PhotoUpload';
 
 interface Order {
   id: string;
@@ -188,72 +189,29 @@ const ReturnRequest = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="order" className="text-white">Select Order</Label>
-                  <Select value={selectedOrder} onValueChange={setSelectedOrder}>
-                    <SelectTrigger className="bg-gray-700 text-white border-gray-600">
-                      <SelectValue placeholder="Choose an order" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {orders.map((order) => (
-                        <SelectItem key={order.id} value={order.id}>
-                          {order.order_number} - {new Date(order.created_at).toLocaleDateString()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <OrderSelector
+                  orders={orders}
+                  selectedOrder={selectedOrder}
+                  onOrderChange={setSelectedOrder}
+                />
 
-                {selectedOrder && orderItems.length > 0 && (
-                  <div>
-                    <Label className="text-white">Select Items</Label>
-                    <div className="mt-2 space-y-2 border border-gray-600 rounded-md p-4 bg-gray-700">
-                      {orderItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={item.id}
-                            checked={selectedItems.includes(item.id)}
-                            onCheckedChange={() => handleItemToggle(item.id)}
-                          />
-                          <Label htmlFor={item.id} className="flex-1 cursor-pointer text-white">
-                            {item.product_name} - Qty: {item.quantity} - ${item.unit_price}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <ItemSelector
+                  orderItems={orderItems}
+                  selectedItems={selectedItems}
+                  onItemToggle={handleItemToggle}
+                  selectedOrder={selectedOrder}
+                />
 
-                <div>
-                  <Label className="text-white">Request Type</Label>
-                  <RadioGroup value={requestType} onValueChange={(value: 'return' | 'refund') => setRequestType(value)} className="mt-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="return" id="return" />
-                      <Label htmlFor="return" className="text-white">Return (Exchange/Store Credit)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="refund" id="refund" />
-                      <Label htmlFor="refund" className="text-white">Refund (Money Back)</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                <RequestTypeSelector
+                  requestType={requestType}
+                  onRequestTypeChange={setRequestType}
+                />
 
-                <div>
-                  <Label htmlFor="reason" className="text-white">Reason for {requestType === 'return' ? 'Return' : 'Refund'}</Label>
-                  <Select value={reason} onValueChange={setReason}>
-                    <SelectTrigger className="bg-gray-700 text-white border-gray-600">
-                      <SelectValue placeholder="Select a reason" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="defective">Defective item</SelectItem>
-                      <SelectItem value="wrong-size">Wrong size</SelectItem>
-                      <SelectItem value="wrong-item">Wrong item sent</SelectItem>
-                      <SelectItem value="not-as-described">Not as described</SelectItem>
-                      <SelectItem value="changed-mind">Changed my mind</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <ReasonSelector
+                  reason={reason}
+                  onReasonChange={setReason}
+                  requestType={requestType}
+                />
 
                 <div>
                   <Label htmlFor="description" className="text-white">Additional Details (Optional)</Label>
@@ -267,37 +225,11 @@ const ReturnRequest = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="photos" className="text-white">Upload Photos (Optional, max 5)</Label>
-                  <Input
-                    id="photos"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    className="bg-gray-700 text-white border-gray-600"
-                  />
-                  {photos.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {photos.map((photo, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={URL.createObjectURL(photo)}
-                            alt={`Upload ${index + 1}`}
-                            className="w-20 h-20 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removePhoto(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <PhotoUpload
+                  photos={photos}
+                  onPhotoUpload={handlePhotoUpload}
+                  onRemovePhoto={removePhoto}
+                />
 
                 <Button type="submit" disabled={isSubmitting} className="w-full bg-blue-400 hover:bg-blue-500 text-black">
                   {isSubmitting ? 'Submitting...' : `Submit ${requestType === 'return' ? 'Return' : 'Refund'} Request`}
