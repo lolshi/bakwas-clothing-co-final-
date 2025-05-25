@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useBannerForm } from '@/hooks/useBannerForm';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import ImageUpload from './ImageUpload';
 import BannerFormFields from './BannerFormFields';
 
@@ -25,27 +26,25 @@ interface BannerFormProps {
 
 const BannerForm: React.FC<BannerFormProps> = ({ banner, isOpen, onClose, onSave }) => {
   const { formData, updateFormData, loading, saveBanner } = useBannerForm(banner);
+  const { currentImageFile, setCurrentImageFile, uploadImage } = useImageUpload();
   const [imagePreview, setImagePreview] = useState<string>(banner?.image_url || '');
-  const [currentImageFile, setCurrentImageFile] = useState<File | null>(null);
 
-  const imageUpload = ImageUpload({
-    imagePreview,
-    onImageChange: (file, preview) => {
-      setCurrentImageFile(file);
-      setImagePreview(preview);
-    },
-    onImageClear: () => {
-      setImagePreview('');
-      setCurrentImageFile(null);
-      updateFormData({ image_url: '' });
-    }
-  });
+  const handleImageChange = (file: File | null, preview: string) => {
+    setCurrentImageFile(file);
+    setImagePreview(preview);
+  };
+
+  const handleImageClear = () => {
+    setImagePreview('');
+    setCurrentImageFile(null);
+    updateFormData({ image_url: '' });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      const imageUrl = await imageUpload.uploadImage(formData.image_url);
+      const imageUrl = await uploadImage(formData.image_url);
       await saveBanner(imageUrl, onSave, onClose);
     } catch (error) {
       console.error('Error in form submission:', error);
@@ -66,7 +65,11 @@ const BannerForm: React.FC<BannerFormProps> = ({ banner, isOpen, onClose, onSave
             onUpdateFormData={updateFormData}
           />
 
-          {imageUpload.component}
+          <ImageUpload
+            imagePreview={imagePreview}
+            onImageChange={handleImageChange}
+            onImageClear={handleImageClear}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={loading}>
