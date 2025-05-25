@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-1">
             <img 
               src="/lovable-uploads/6b112a77-ea8e-4f47-b08f-0f2be98c0b2f.png" 
               alt="Bakwas Clothing Co." 
@@ -24,25 +24,38 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Shop & Account */}
           <div>
-            <h4 className="font-anton text-lg mb-4">QUICK LINKS</h4>
+            <h4 className="font-anton text-lg mb-4">SHOP</h4>
             <ul className="space-y-2 font-space">
-              <li><a href="/shop" className="text-muted-foreground hover:text-neon-cyan transition-colors">Shop</a></li>
-              <li><a href="/collections" className="text-muted-foreground hover:text-neon-cyan transition-colors">Collections</a></li>
-              <li><a href="/about" className="text-muted-foreground hover:text-neon-cyan transition-colors">About</a></li>
-              <li><a href="/contact" className="text-muted-foreground hover:text-neon-cyan transition-colors">Contact</a></li>
+              <li><a href="/shop" className="text-muted-foreground hover:text-neon-cyan transition-colors">All Products</a></li>
+              <li><a href="/cart" className="text-muted-foreground hover:text-neon-cyan transition-colors">Cart</a></li>
+              <li><a href="/account" className="text-muted-foreground hover:text-neon-cyan transition-colors">My Account</a></li>
+              <li><a href="/order-history" className="text-muted-foreground hover:text-neon-cyan transition-colors">Order History</a></li>
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Support & Help */}
           <div>
             <h4 className="font-anton text-lg mb-4">SUPPORT</h4>
             <ul className="space-y-2 font-space">
-              <li><a href="/size-guide" className="text-muted-foreground hover:text-neon-cyan transition-colors">Size Guide</a></li>
-              <li><a href="/shipping" className="text-muted-foreground hover:text-neon-cyan transition-colors">Shipping</a></li>
-              <li><a href="/returns" className="text-muted-foreground hover:text-neon-cyan transition-colors">Returns</a></li>
-              <li><a href="/faq" className="text-muted-foreground hover:text-neon-cyan transition-colors">FAQ</a></li>
+              <li><a href="/help" className="text-muted-foreground hover:text-neon-cyan transition-colors">Help Center</a></li>
+              <li><a href="/contact" className="text-muted-foreground hover:text-neon-cyan transition-colors">Contact Us</a></li>
+              <li><a href="/returns-policy" className="text-muted-foreground hover:text-neon-cyan transition-colors">Returns Policy</a></li>
+              <li><a href="/return-request" className="text-muted-foreground hover:text-neon-cyan transition-colors">Return Request</a></li>
+              <li><a href="/faqs" className="text-muted-foreground hover:text-neon-cyan transition-colors">FAQs</a></li>
+            </ul>
+          </div>
+
+          {/* Company & Legal */}
+          <div>
+            <h4 className="font-anton text-lg mb-4">COMPANY</h4>
+            <ul className="space-y-2 font-space">
+              <li><a href="/about" className="text-muted-foreground hover:text-neon-cyan transition-colors">About Us</a></li>
+              <li><a href="/company" className="text-muted-foreground hover:text-neon-cyan transition-colors">Our Company</a></li>
+              <li><a href="/blogs" className="text-muted-foreground hover:text-neon-cyan transition-colors">Blog</a></li>
+              <li><a href="/terms" className="text-muted-foreground hover:text-neon-cyan transition-colors">Terms & Conditions</a></li>
+              <li><a href="/privacy" className="text-muted-foreground hover:text-neon-cyan transition-colors">Privacy Policy</a></li>
             </ul>
           </div>
         </div>
