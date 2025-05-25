@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -17,9 +18,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
   const { user } = useAuth();
+  const { items: cartItems, total: cartTotal } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [promoCode, setPromoCode] = useState('');
@@ -42,30 +43,8 @@ const Checkout = () => {
   });
 
   useEffect(() => {
-    // Mock cart data - in real app, this would come from cart context/state
-    const mockCartItems = [
-      {
-        id: '1',
-        title: 'Classic Hoodie',
-        variant: 'Black - M',
-        quantity: 1,
-        price: 2499,
-        image: '/lovable-uploads/aae6428d-9a3d-4b45-87c4-900c7fe5558e.png'
-      },
-      {
-        id: '2',
-        title: 'Streetwear Tee',
-        variant: 'White - L',
-        quantity: 2,
-        price: 1299,
-        image: '/lovable-uploads/f28f3d2a-8930-4520-9cc7-8de233beae5c.png'
-      }
-    ];
-    setCartItems(mockCartItems);
-    
-    const total = mockCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    setSubtotal(total);
-  }, []);
+    setSubtotal(cartTotal);
+  }, [cartTotal]);
 
   const shippingCost = subtotal > 2000 ? 0 : 50;
   const total = subtotal - discount + shippingCost;
@@ -226,11 +205,13 @@ const Checkout = () => {
       <div className="min-h-screen bg-background">
         <Header />
         
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 pt-24">
           <div className="max-w-7xl mx-auto">
-            <ProgressBar currentStep="checkout" />
+            <div className="mb-8">
+              <ProgressBar currentStep="checkout" />
+            </div>
             
-            <div className="grid lg:grid-cols-2 gap-8 mt-8">
+            <div className="grid lg:grid-cols-2 gap-8">
               {/* Left Column - Forms */}
               <div className="space-y-6">
                 <CheckoutForm form={form} />

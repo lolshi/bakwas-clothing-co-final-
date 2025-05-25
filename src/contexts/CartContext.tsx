@@ -37,7 +37,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const savedCart = localStorage.getItem('bakwas-cart');
     if (savedCart) {
-      setItems(JSON.parse(savedCart));
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        // Only set items if it's a valid array
+        if (Array.isArray(parsedCart)) {
+          setItems(parsedCart);
+        }
+      } catch (error) {
+        console.error('Error parsing cart from localStorage:', error);
+        // Clear invalid data
+        localStorage.removeItem('bakwas-cart');
+      }
     }
   }, []);
 

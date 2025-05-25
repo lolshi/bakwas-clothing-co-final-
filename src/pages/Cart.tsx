@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,108 +7,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/contexts/CartContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-interface CartItem {
-  id: string;
-  title: string;
-  slug: string;
-  variant: string;
-  size: string;
-  color: string;
-  quantity: number;
-  price: number;
-  image: string;
-}
-
 const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { items: cartItems, updateQuantity, removeFromCart, total: cartTotal } = useCart();
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Mock cart data - in real app, this would come from cart context/API
-    const mockCartItems: CartItem[] = [
-      {
-        id: '1',
-        title: 'Classic Hoodie',
-        slug: 'classic-hoodie',
-        variant: 'Black - M',
-        size: 'M',
-        color: 'Black',
-        quantity: 1,
-        price: 2499,
-        image: '/lovable-uploads/aae6428d-9a3d-4b45-87c4-900c7fe5558e.png'
-      },
-      {
-        id: '2',
-        title: 'Streetwear Tee',
-        slug: 'streetwear-tee',
-        variant: 'White - L',
-        size: 'L',
-        color: 'White',
-        quantity: 2,
-        price: 1299,
-        image: '/lovable-uploads/f28f3d2a-8930-4520-9cc7-8de233beae5c.png'
-      }
-    ];
-    
-    setCartItems(mockCartItems);
-    setIsLoading(false);
-  }, []);
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartTotal;
   const shippingCost = subtotal > 2000 ? 0 : 50;
   const total = subtotal - discount + shippingCost;
 
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-
-    // Fire GTM event
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'update_cart', {
-        currency: 'INR',
-        value: total,
-      });
-    }
-
+  const handleQuantityUpdate = (id: string, newQuantity: number) => {
+    updateQuantity(id, newQuantity);
     toast({
       title: "Cart updated",
       description: "Quantity has been updated",
     });
   };
 
-  const removeItem = (id: string) => {
-    const item = cartItems.find(item => item.id === id);
-    
-    setCartItems(items => items.filter(item => item.id !== id));
-
-    // Fire GTM event
-    if (typeof window !== 'undefined' && window.gtag && item) {
-      window.gtag('event', 'remove_from_cart', {
-        currency: 'INR',
-        value: item.price * item.quantity,
-        items: [{
-          item_id: item.id,
-          item_name: item.title,
-          quantity: item.quantity,
-          price: item.price,
-        }],
-      });
-    }
-
+  const handleRemoveItem = (id: string) => {
+    removeFromCart(id);
     toast({
       title: "Item removed",
       description: "Item has been removed from your cart",
@@ -173,23 +98,11 @@ const Cart = () => {
     navigate('/checkout');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-neon-cyan" />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-24">
         {/* Breadcrumbs */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -244,15 +157,14 @@ const Cart = () => {
                       />
                       
                       <div className="flex-1">
-                        <Link 
-                          to={`/product/${item.slug}`}
-                          className="font-medium text-lg hover:text-neon-cyan transition-colors"
-                        >
+                        <h3 className="font-medium text-lg hover:text-neon-cyan transition-colors">
                           {item.title}
-                        </Link>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {item.variant}
-                        </p>
+                        </h3>
+                        {item.selectedSize && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Size: {item.selectedSize}
+                          </p>
+                        )}
                         <p className="text-lg font-bold text-neon-cyan mt-2">
                           ₹{item.price.toLocaleString()}
                         </p>
@@ -265,7 +177,7 @@ const Cart = () => {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 hover:scale-110 transition-transform"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => handleQuantityUpdate(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="h-4 w-4" />
@@ -279,7 +191,7 @@ const Cart = () => {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 hover:scale-110 transition-transform"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => handleQuantityUpdate(item.id, item.quantity + 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -295,7 +207,7 @@ const Cart = () => {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive/80"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveItem(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
