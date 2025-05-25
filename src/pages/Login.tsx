@@ -39,18 +39,49 @@ const Login = () => {
     setIsLoading(false);
   };
 
+  const handleDemoLogin = () => {
+    setEmail('demo@example.com');
+    setPassword('password');
+  };
+
   const isFormValid = email.length > 0 && password.length > 0;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="bg-card border-border shadow-xl animate-in fade-in duration-300">
+        <Card className="bg-card/90 backdrop-blur-sm border-border shadow-xl animate-in fade-in duration-300">
           <CardHeader className="text-center">
+            <img 
+              src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
+              alt="Bakwas Clothing Co." 
+              className="h-12 w-auto mx-auto mb-4"
+            />
             <CardTitle className="text-2xl font-anton bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
               Welcome Back
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Demo Credentials Banner */}
+            <div className="mb-6 p-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
+              <h4 className="font-anton text-neon-cyan mb-2">Demo Login</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Use these credentials to test the website:
+              </p>
+              <div className="text-sm font-mono bg-black/20 p-2 rounded">
+                <div>Email: demo@example.com</div>
+                <div>Password: password</div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black"
+                onClick={handleDemoLogin}
+              >
+                Use Demo Credentials
+              </Button>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

@@ -38,9 +38,14 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm">
         <CardHeader className="text-center">
+          <img 
+            src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
+            alt="Bakwas Clothing Co." 
+            className="h-12 w-auto mx-auto mb-4"
+          />
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
             Sign in to access the admin panel
