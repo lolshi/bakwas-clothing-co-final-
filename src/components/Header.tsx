@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -95,11 +96,19 @@ const Header = () => {
                         </p>
                       </div>
                     </div>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/orders" className="cursor-pointer">
                         Orders
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
@@ -157,6 +166,14 @@ const Header = () => {
                 </Link>
                 <Link to="/signup" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
                   Sign Up
+                </Link>
+              </div>
+            )}
+
+            {!loading && user && (
+              <div className="pt-4 border-t border-border/40 space-y-2">
+                <Link to="/admin" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
+                  Admin Panel
                 </Link>
               </div>
             )}
