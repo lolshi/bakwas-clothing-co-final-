@@ -60,23 +60,37 @@ const AdminBlog = () => {
     }
   };
 
-  const savePost = async (post: Partial<BlogPost>) => {
+  const savePost = async (post: BlogPost) => {
     try {
       // Generate slug from title if creating new post
       if (!editingPost?.id && post.title) {
         post.slug = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       }
 
+      // Prepare the data object with required fields
+      const postData = {
+        title: post.title || '',
+        slug: post.slug || '',
+        excerpt: post.excerpt || '',
+        content: post.content || '',
+        featured_image: post.featured_image || '',
+        categories: post.categories || [],
+        tags: post.tags || [],
+        author_name: post.author_name || 'Admin',
+        publish_date: post.publish_date || new Date().toISOString(),
+        is_active: post.is_active ?? true
+      };
+
       if (editingPost?.id) {
         const { error } = await supabase
           .from('blog_posts')
-          .update(post)
+          .update(postData)
           .eq('id', editingPost.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('blog_posts')
-          .insert(post);
+          .insert(postData);
         if (error) throw error;
       }
 

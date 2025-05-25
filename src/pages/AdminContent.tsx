@@ -76,18 +76,26 @@ const AdminContent = () => {
     }
   };
 
-  const saveFAQ = async (faq: Partial<FAQ>) => {
+  const saveFAQ = async (faq: FAQ) => {
     try {
+      // Prepare the data object with required fields
+      const faqData = {
+        question: faq.question || '',
+        answer: faq.answer || '',
+        sort_order: faq.sort_order || 0,
+        is_active: faq.is_active ?? true
+      };
+
       if (editingFAQ?.id) {
         const { error } = await supabase
           .from('faqs')
-          .update(faq)
+          .update(faqData)
           .eq('id', editingFAQ.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('faqs')
-          .insert(faq);
+          .insert(faqData);
         if (error) throw error;
       }
 
@@ -133,12 +141,12 @@ const AdminContent = () => {
     }
   };
 
-  const savePage = async (page: Partial<SitePage>) => {
+  const savePage = async (page: SitePage) => {
     try {
       const { error } = await supabase
         .from('site_pages')
         .update({ title: page.title, content: page.content })
-        .eq('id', editingPage!.id);
+        .eq('id', page.id);
 
       if (error) throw error;
 
