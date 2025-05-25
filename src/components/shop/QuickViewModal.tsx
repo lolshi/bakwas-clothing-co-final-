@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import { Product } from '@/pages/Shop';
+import { ImageCarousel } from './ImageCarousel';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -13,22 +14,9 @@ interface QuickViewModalProps {
 }
 
 export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
 
   if (!product) return null;
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === product.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? product.images.length - 1 : prev - 1
-    );
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -39,56 +27,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
         
         <div className="grid md:grid-cols-2 gap-6">
           {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-              <img
-                src={product.images[currentImageIndex]}
-                alt={product.title}
-                className="w-full h-full object-cover"
-              />
-              
-              {product.images.length > 1 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
-                    onClick={prevImage}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
-                    onClick={nextImage}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-            
-            {/* Thumbnail Navigation */}
-            {product.images.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 ${
-                      index === currentImageIndex ? 'border-neon-cyan' : 'border-transparent'
-                    }`}
-                    onClick={() => setCurrentImageIndex(index)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.title} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div>
+            <ImageCarousel images={product.images} alt={product.title} />
           </div>
 
           {/* Product Details */}

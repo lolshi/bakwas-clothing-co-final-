@@ -82,6 +82,7 @@ const mockProducts: Product[] = [
 
 export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const itemsPerPage = 8;
@@ -89,6 +90,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [products, filters]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -108,7 +113,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         price: product.price,
         image: product.images?.[0] || '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png',
         category: product.category_ids?.[0] || 'general',
-        sizes: ['S', 'M', 'L', 'XL'], // Default sizes - you may want to add a sizes field to products table
+        sizes: ['S', 'M', 'L', 'XL'], // Default sizes
         colors: [product.color || 'black'],
         description: product.description || '',
         images: product.images || ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png']
@@ -122,47 +127,46 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
     }
   };
 
-  useEffect(() => {
-    // Apply filters
-    let filteredProducts = products;
+  const applyFilters = () => {
+    let filtered = [...products];
 
     // Apply category filter
     if (filters.categories.length > 0) {
-      filteredProducts = filteredProducts.filter(product =>
+      filtered = filtered.filter(product =>
         filters.categories.includes(product.category)
       );
     }
 
     // Apply size filter
     if (filters.sizes.length > 0) {
-      filteredProducts = filteredProducts.filter(product =>
+      filtered = filtered.filter(product =>
         product.sizes.some(size => filters.sizes.includes(size))
       );
     }
 
     // Apply color filter
     if (filters.colors.length > 0) {
-      filteredProducts = filteredProducts.filter(product =>
+      filtered = filtered.filter(product =>
         product.colors.some(color => filters.colors.includes(color))
       );
     }
 
     // Apply price filter
-    filteredProducts = filteredProducts.filter(product =>
+    filtered = filtered.filter(product =>
       product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
     );
 
     // Apply sorting
     switch (filters.sortBy) {
       case 'price-low':
-        filteredProducts.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => a.price - b.price);
         break;
       case 'price-high':
-        filteredProducts.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => b.price - a.price);
         break;
       case 'best-selling':
         // Mock best selling logic
-        filteredProducts.sort(() => Math.random() - 0.5);
+        filtered.sort(() => Math.random() - 0.5);
         break;
       case 'newest':
       default:
@@ -170,8 +174,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         break;
     }
 
-    setProducts(filteredProducts);
-  }, [filters]);
+    setFilteredProducts(filtered);
+  };
 
   const handleAddToCart = (product: Product) => {
     // Fire GTM event
@@ -196,8 +200,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
     setPage(prev => prev + 1);
   };
 
-  const displayedProducts = products.slice(0, page * itemsPerPage);
-  const hasMore = products.length > displayedProducts.length;
+  const displayedProducts = filteredProducts.slice(0, page * itemsPerPage);
+  const hasMore = filteredProducts.length > displayedProducts.length;
 
   if (loading) {
     return (
@@ -275,7 +279,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         </div>
       )}
 
-      {products.length === 0 && !loading && (
+      {filteredProducts.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-muted-foreground text-lg">No products found matching your filters.</p>
         </div>

@@ -19,13 +19,10 @@ const categories = [
 
 const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
-const colors = [
-  { id: 'black', name: 'Black', value: '#000000' },
-  { id: 'white', name: 'White', value: '#ffffff' },
-  { id: 'neon-cyan', name: 'Neon Cyan', value: '#00E1FF' },
-  { id: 'neon-purple', name: 'Neon Purple', value: '#8B5CF6' },
-  { id: 'neon-pink', name: 'Neon Pink', value: '#EC4899' },
-  { id: 'neon-orange', name: 'Neon Orange', value: '#F97316' }
+const colours = [
+  'Black', 'White', 'Navy Blue', 'Grey', 'Red', 'Royal Blue', 'Maroon', 
+  'Olive Green', 'Mustard Yellow', 'Bottle Green', 'Sky Blue', 'Pink', 
+  'Beige', 'Brown', 'Orange', 'Lavender', 'Turquoise', 'Peach', 'Charcoal', 'Mint Green'
 ];
 
 const sortOptions = [
@@ -133,6 +130,27 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilters
         </CardContent>
       </Card>
 
+      {/* Colours */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="font-anton text-lg">Colours</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 max-h-64 overflow-y-auto">
+          {colours.map(colour => (
+            <div key={colour} className="flex items-center space-x-2">
+              <Checkbox
+                id={colour}
+                checked={filters.colors.includes(colour)}
+                onCheckedChange={(checked) => handleColorChange(colour, checked as boolean)}
+              />
+              <label htmlFor={colour} className="text-sm font-space cursor-pointer">
+                {colour}
+              </label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       {/* Price Range */}
       <Card className="bg-card border-border">
         <CardHeader>
@@ -150,32 +168,6 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilters
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>₹{filters.priceRange[0]}</span>
             <span>₹{filters.priceRange[1]}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Colors */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="font-anton text-lg">Colors</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-3">
-            {colors.map(color => (
-              <div key={color.id} className="flex flex-col items-center space-y-1">
-                <div 
-                  className={`w-8 h-8 rounded-full border-2 cursor-pointer transition-all hover:scale-110 ${
-                    filters.colors.includes(color.id) 
-                      ? 'border-primary shadow-lg' 
-                      : 'border-border'
-                  }`}
-                  style={{ backgroundColor: color.value }}
-                  onClick={() => handleColorChange(color.id, !filters.colors.includes(color.id))}
-                  title={color.name}
-                />
-                <span className="text-xs text-muted-foreground">{color.name.split(' ')[1] || color.name}</span>
-              </div>
-            ))}
           </div>
         </CardContent>
       </Card>

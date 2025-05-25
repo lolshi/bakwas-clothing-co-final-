@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,12 @@ interface ProductFormProps {
   onProductSaved: () => void;
   categories: Category[];
 }
+
+const COLOUR_OPTIONS = [
+  'Black', 'White', 'Navy Blue', 'Grey', 'Red', 'Royal Blue', 'Maroon', 
+  'Olive Green', 'Mustard Yellow', 'Bottle Green', 'Sky Blue', 'Pink', 
+  'Beige', 'Brown', 'Orange', 'Lavender', 'Turquoise', 'Peach', 'Charcoal', 'Mint Green'
+];
 
 const ProductForm = ({ isOpen, onClose, editingProduct, onProductSaved, categories }: ProductFormProps) => {
   const { toast } = useToast();
@@ -195,12 +202,19 @@ const ProductForm = ({ isOpen, onClose, editingProduct, onProductSaved, categori
               />
             </div>
             <div>
-              <Label htmlFor="color">Color</Label>
-              <Input
-                id="color"
-                value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              />
+              <Label htmlFor="color">Colour</Label>
+              <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a colour" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COLOUR_OPTIONS.map((color) => (
+                    <SelectItem key={color} value={color}>
+                      {color}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
