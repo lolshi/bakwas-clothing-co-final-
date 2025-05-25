@@ -13,12 +13,27 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
+import Help from "./pages/Help";
+import Contact from "./pages/Contact";
+import ReturnsPolicy from "./pages/ReturnsPolicy";
+import OrderHistory from "./pages/OrderHistory";
+import ReturnRequest from "./pages/ReturnRequest";
+import FAQs from "./pages/FAQs";
+import MyAccount from "./pages/MyAccount";
+import Company from "./pages/Company";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Blogs from "./pages/Blogs";
+import BlogDetail from "./pages/BlogDetail";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import AdminHomepage from "./pages/AdminHomepage";
 import AdminPromoCodes from "./pages/AdminPromoCodes";
+import AdminContent from "./pages/AdminContent";
+import AdminBlog from "./pages/AdminBlog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -45,6 +60,21 @@ const App = () => (
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/checkout" element={<Checkout />} />
                 
+                {/* New Content Pages */}
+                <Route path="/help" element={<Help />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/returns-policy" element={<ReturnsPolicy />} />
+                <Route path="/order-history" element={<OrderHistory />} />
+                <Route path="/return-request" element={<ReturnRequest />} />
+                <Route path="/faqs" element={<FAQs />} />
+                <Route path="/account" element={<MyAccount />} />
+                <Route path="/company" element={<Company />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/blogs/:slug" element={<BlogDetail />} />
+                
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin" element={
@@ -70,6 +100,16 @@ const App = () => (
                 <Route path="/admin/promo-codes" element={
                   <ProtectedAdminRoute>
                     <AdminPromoCodes />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/content" element={
+                  <ProtectedAdminRoute>
+                    <AdminContent />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/blog" element={
+                  <ProtectedAdminRoute>
+                    <AdminBlog />
                   </ProtectedAdminRoute>
                 } />
                 

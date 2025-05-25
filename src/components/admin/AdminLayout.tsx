@@ -31,7 +31,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Homepage', href: '/admin/homepage', icon: Home },
     { name: 'Promo Codes', href: '/admin/promo-codes', icon: Tag },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { name: 'Content', href: '/admin/content', icon: Settings },
+    { name: 'Blog', href: '/admin/blog', icon: Settings },
   ];
 
   const handleSignOut = async () => {
