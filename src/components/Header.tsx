@@ -3,21 +3,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart, User, Heart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { adminUser } = useAdminAuth();
   const { user } = useAuth();
   const { itemCount } = useCart();
   const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  // Check if user has admin role
-  const isAdmin = adminUser || user?.user_metadata?.role === 'admin';
 
   return (
     <header className="sticky top-0 z-20 bg-gray-900/90 backdrop-blur-md border-b border-gray-700">
@@ -70,20 +65,15 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Admin Panel Link - only show if user is admin */}
-            {isAdmin && (
-              <Link to="/admin">
+            {/* Account Link - only show if user is logged in */}
+            {user && (
+              <Link to="/account">
                 <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                  Admin
+                  <User className="h-4 w-4 mr-2" />
+                  Account
                 </Button>
               </Link>
             )}
-            <Link to="/account">
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                <User className="h-4 w-4 mr-2" />
-                Account
-              </Button>
-            </Link>
             <Link to="/wishlist">
               <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
                 <Heart className="h-4 w-4" />
@@ -149,19 +139,14 @@ const Header = () => {
               </Link>
               
               <div className="flex items-center space-x-4 pt-4 border-t border-gray-700">
-                {isAdmin && (
-                  <Link to="/admin" onClick={toggleMenu}>
+                {user && (
+                  <Link to="/account" onClick={toggleMenu}>
                     <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                      Admin
+                      <User className="h-4 w-4 mr-2" />
+                      Account
                     </Button>
                   </Link>
                 )}
-                <Link to="/account" onClick={toggleMenu}>
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                    <User className="h-4 w-4 mr-2" />
-                    Account
-                  </Button>
-                </Link>
                 <Link to="/wishlist" onClick={toggleMenu}>
                   <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
                     <Heart className="h-4 w-4" />

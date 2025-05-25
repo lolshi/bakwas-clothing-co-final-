@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/contexts/CartContext';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 const Cart = () => {
   const { items: cartItems, updateQuantity, removeFromCart, total: cartTotal } = useCart();
