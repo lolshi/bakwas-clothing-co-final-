@@ -102,61 +102,61 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">
             Overview of your store's performance and recent orders.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-900">Total Orders</CardTitle>
+              <ShoppingCart className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.totalOrders}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-900">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-gray-900">₹{stats.totalRevenue.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-900">Total Products</CardTitle>
+              <Package className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalProducts}</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.totalProducts}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-900">Pending Orders</CardTitle>
+              <CalendarDays className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingOrders}</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.pendingOrders}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Recent Orders */}
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-gray-900">Recent Orders</CardTitle>
+            <CardDescription className="text-gray-600">
               Latest orders from your customers
             </CardDescription>
             <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
+              <Search className="h-4 w-4 text-gray-600" />
               <Input
                 placeholder="Search orders..."
                 value={searchTerm}
@@ -169,24 +169,24 @@ const AdminDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order Number</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-gray-900">Order Number</TableHead>
+                  <TableHead className="text-gray-900">Customer</TableHead>
+                  <TableHead className="text-gray-900">Email</TableHead>
+                  <TableHead className="text-gray-900">Total</TableHead>
+                  <TableHead className="text-gray-900">Status</TableHead>
+                  <TableHead className="text-gray-900">Date</TableHead>
+                  <TableHead className="text-gray-900">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{order.customer_name}</TableCell>
-                    <TableCell>{order.customer_email}</TableCell>
-                    <TableCell>₹{Number(order.total_amount).toLocaleString()}</TableCell>
+                    <TableCell className="font-medium text-gray-900">{order.order_number}</TableCell>
+                    <TableCell className="text-gray-900">{order.customer_name}</TableCell>
+                    <TableCell className="text-gray-900">{order.customer_email}</TableCell>
+                    <TableCell className="text-gray-900">₹{Number(order.total_amount).toLocaleString()}</TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell>{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell className="text-gray-900">{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />

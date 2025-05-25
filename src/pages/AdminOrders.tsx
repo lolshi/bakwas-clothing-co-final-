@@ -124,8 +124,8 @@ const AdminOrders = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Orders</h1>
+            <p className="text-gray-600">
               Manage customer orders and fulfillment
             </p>
           </div>
@@ -135,15 +135,15 @@ const AdminOrders = () => {
           </Button>
         </div>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle>Order Management</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-gray-900">Order Management</CardTitle>
+            <CardDescription className="text-gray-600">
               View and manage all customer orders
             </CardDescription>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-4 w-4 text-gray-600" />
                 <Input
                   placeholder="Search orders..."
                   value={searchTerm}
@@ -170,25 +170,25 @@ const AdminOrders = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order Number</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-gray-900">Order Number</TableHead>
+                  <TableHead className="text-gray-900">Customer</TableHead>
+                  <TableHead className="text-gray-900">Email</TableHead>
+                  <TableHead className="text-gray-900">Phone</TableHead>
+                  <TableHead className="text-gray-900">Total</TableHead>
+                  <TableHead className="text-gray-900">Status</TableHead>
+                  <TableHead className="text-gray-900">Payment</TableHead>
+                  <TableHead className="text-gray-900">Date</TableHead>
+                  <TableHead className="text-gray-900">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{order.customer_name}</TableCell>
-                    <TableCell>{order.customer_email}</TableCell>
-                    <TableCell>{order.customer_phone || 'N/A'}</TableCell>
-                    <TableCell>₹{Number(order.total_amount).toLocaleString()}</TableCell>
+                    <TableCell className="font-medium text-gray-900">{order.order_number}</TableCell>
+                    <TableCell className="text-gray-900">{order.customer_name}</TableCell>
+                    <TableCell className="text-gray-900">{order.customer_email}</TableCell>
+                    <TableCell className="text-gray-900">{order.customer_phone || 'N/A'}</TableCell>
+                    <TableCell className="text-gray-900">₹{Number(order.total_amount).toLocaleString()}</TableCell>
                     <TableCell>
                       <Select
                         value={order.status}
@@ -207,7 +207,7 @@ const AdminOrders = () => {
                       </Select>
                     </TableCell>
                     <TableCell>{getStatusBadge(order.payment_status)}</TableCell>
-                    <TableCell>{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell className="text-gray-900">{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />

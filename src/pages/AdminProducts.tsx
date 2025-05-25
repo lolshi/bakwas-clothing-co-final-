@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,7 @@ import ProductForm from '@/components/admin/ProductForm';
 import ProductCard from '@/components/admin/ProductCard';
 import EmptyProductsState from '@/components/admin/EmptyProductsState';
 import LoadingState from '@/components/admin/LoadingState';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 interface Product {
   id: string;
@@ -105,14 +105,18 @@ const AdminProducts = () => {
   };
 
   if (loading && products.length === 0) {
-    return <LoadingState />;
+    return (
+      <AdminLayout>
+        <LoadingState />
+      </AdminLayout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-anton">Product Management</h1>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
           <Button onClick={handleAddProduct}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
@@ -143,7 +147,7 @@ const AdminProducts = () => {
           categories={categories}
         />
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
