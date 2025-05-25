@@ -21,21 +21,17 @@ interface Banner {
   sort_order: number;
 }
 
-interface FeaturedProduct {
+interface Product {
   id: string;
-  product_id: string;
-  sort_order: number;
-  products: {
-    name: string;
-    price: number;
-    images: string[] | null;
-    is_featured: boolean;
-  };
+  name: string;
+  price: number;
+  images: string[] | null;
+  is_featured: boolean;
 }
 
 const AdminHomepage = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [bannerFormOpen, setBannerFormOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -64,21 +60,7 @@ const AdminHomepage = () => {
       if (productsError) throw productsError;
 
       if (bannersData) setBanners(bannersData);
-      if (productsData) {
-        // Transform to match the expected interface
-        const transformedProducts = productsData.map((product, index) => ({
-          id: `featured-${product.id}`,
-          product_id: product.id,
-          sort_order: index,
-          products: {
-            name: product.name,
-            price: product.price,
-            images: product.images,
-            is_featured: product.is_featured || false
-          }
-        }));
-        setFeaturedProducts(transformedProducts);
-      }
+      if (productsData) setFeaturedProducts(productsData);
     } catch (error) {
       console.error('Error fetching homepage data:', error);
       toast.error('Failed to fetch homepage data');
@@ -311,13 +293,13 @@ const AdminHomepage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {featuredProducts.map((featured) => (
-                    <TableRow key={featured.id}>
+                  {featuredProducts.map((product) => (
+                    <TableRow key={product.id}>
                       <TableCell>
-                        {featured.products.images && featured.products.images[0] ? (
+                        {product.images && product.images[0] ? (
                           <img
-                            src={featured.products.images[0]}
-                            alt={featured.products.name}
+                            src={product.images[0]}
+                            alt={product.name}
                             className="w-12 h-12 object-cover rounded"
                           />
                         ) : (
@@ -326,13 +308,13 @@ const AdminHomepage = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">{featured.products.name}</TableCell>
-                      <TableCell>₹{Number(featured.products.price).toLocaleString()}</TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>₹{Number(product.price).toLocaleString()}</TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeFeaturedProduct(featured.product_id)}
+                          onClick={() => removeFeaturedProduct(product.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />

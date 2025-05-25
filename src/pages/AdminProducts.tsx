@@ -22,7 +22,7 @@ interface Product {
   price: number;
   stock_quantity: number;
   is_active: boolean;
-  is_featured?: boolean;
+  is_featured: boolean;
   color: string;
   tags: string[];
   images: string[];
@@ -392,7 +392,7 @@ const AdminProducts = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => toggleFeaturedStatus(product.id, product.is_featured || false)}
+                      onClick={() => toggleFeaturedStatus(product.id, product.is_featured)}
                     >
                       <Star className={`h-4 w-4 ${product.is_featured ? 'fill-current text-neon-cyan' : ''}`} />
                     </Button>
