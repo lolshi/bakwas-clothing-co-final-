@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Tag
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -29,6 +30,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Homepage', href: '/admin/homepage', icon: Home },
+    { name: 'Promo Codes', href: '/admin/promo-codes', icon: Tag },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 

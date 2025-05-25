@@ -1,11 +1,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, User, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, X, ShoppingCart, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { adminUser } = useAdminAuth();
+  const location = useLocation();
+  
+  // Hide admin links on public pages
+  const isPublicPage = !location.pathname.startsWith('/admin');
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -28,12 +34,22 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/admin/login">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
-                <Settings className="h-4 w-4 mr-2" />
-                Admin
-              </Button>
-            </Link>
+            {/* Only show admin link on public pages and if user is admin */}
+            {isPublicPage && adminUser && (
+              <Link to="/admin">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
+                  Admin Panel
+                </Button>
+              </Link>
+            )}
+            {/* Only show admin login if no admin user and on public pages */}
+            {isPublicPage && !adminUser && (
+              <Link to="/admin/login">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
+                  Admin
+                </Button>
+              </Link>
+            )}
             <Link to="/login">
               <Button variant="ghost" size="sm">
                 <User className="h-4 w-4 mr-2" />
@@ -78,12 +94,21 @@ const Header = () => {
                 Contact
               </Link>
               <div className="flex items-center space-x-4 pt-4 border-t border-border/50">
-                <Link to="/admin/login" onClick={toggleMenu}>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Admin
-                  </Button>
-                </Link>
+                {/* Only show admin link on public pages */}
+                {isPublicPage && adminUser && (
+                  <Link to="/admin" onClick={toggleMenu}>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
+                {isPublicPage && !adminUser && (
+                  <Link to="/admin/login" onClick={toggleMenu}>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/login" onClick={toggleMenu}>
                   <Button variant="ghost" size="sm">
                     <User className="h-4 w-4 mr-2" />

@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import AdminHomepage from "./pages/AdminHomepage";
+import AdminPromoCodes from "./pages/AdminPromoCodes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -64,6 +65,11 @@ const App = () => (
                 <Route path="/admin/homepage" element={
                   <ProtectedAdminRoute>
                     <AdminHomepage />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/promo-codes" element={
+                  <ProtectedAdminRoute>
+                    <AdminPromoCodes />
                   </ProtectedAdminRoute>
                 } />
                 

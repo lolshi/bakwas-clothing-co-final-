@@ -13,6 +13,7 @@ import ProgressBar from '@/components/checkout/ProgressBar';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { checkoutSchema, type CheckoutFormData } from '@/schemas/checkoutSchema';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ const Checkout = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [promoCode, setPromoCode] = useState('');
+  const [promoCodeData, setPromoCodeData] = useState(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const form = useForm<CheckoutFormData>({
@@ -68,39 +70,58 @@ const Checkout = () => {
   const shippingCost = subtotal > 2000 ? 0 : 50;
   const total = subtotal - discount + shippingCost;
 
+  const calculateDiscount = (promoCodeData: any, subtotal: number) => {
+    if (!promoCodeData) return 0;
+    
+    if (subtotal < promoCodeData.min_cart_total) {
+      return 0;
+    }
+    
+    if (promoCodeData.discount_type === 'percentage') {
+      return Math.min((subtotal * promoCodeData.discount_value) / 100, subtotal);
+    } else {
+      return Math.min(promoCodeData.discount_value, subtotal);
+    }
+  };
+
   const handlePromoApply = async (code: string) => {
     try {
-      // Mock promo validation - in real app, this would be an API call
-      const promoDiscounts = {
-        'SAVE10': subtotal * 0.1,
-        'WELCOME20': subtotal * 0.2,
-        'FIRSTORDER': 500
-      };
+      const { data: validPromoCode, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
 
-      if (promoDiscounts[code]) {
-        setDiscount(promoDiscounts[code]);
-        setPromoCode(code);
+      if (error || !validPromoCode) {
+        return false;
+      }
+
+      // Check minimum cart total
+      if (subtotal < validPromoCode.min_cart_total) {
         toast({
-          title: "Promo code applied!",
-          description: `₹${promoDiscounts[code]} discount applied`,
-        });
-        return true;
-      } else {
-        toast({
-          title: "Invalid promo code",
-          description: "Please check your code and try again",
+          title: "Minimum order not met",
+          description: `Minimum order of ₹${validPromoCode.min_cart_total} required for this promo code`,
           variant: "destructive",
         });
         return false;
       }
+
+      const discountAmount = calculateDiscount(validPromoCode, subtotal);
+      setDiscount(discountAmount);
+      setPromoCode(code);
+      setPromoCodeData(validPromoCode);
+      
+      return true;
     } catch (error) {
-      toast({
-        title: "Error applying promo code",
-        description: "Please try again",
-        variant: "destructive",
-      });
       return false;
     }
+  };
+
+  const handlePromoRemove = () => {
+    setDiscount(0);
+    setPromoCode('');
+    setPromoCodeData(null);
   };
 
   const handlePayment = async (formData: CheckoutFormData) => {
@@ -121,6 +142,14 @@ const Checkout = () => {
       // Mock order creation - in real app, this would be an API call
       const orderId = `order_${Date.now()}`;
       
+      // If promo code was used, increment usage count
+      if (promoCodeData) {
+        await supabase
+          .from('promo_codes')
+          .update({ usage_count: promoCodeData.usage_count + 1 })
+          .eq('id', promoCodeData.id);
+      }
+
       // Mock Razorpay integration
       const options = {
         key: 'rzp_test_your_key_here', // Replace with actual Razorpay key
@@ -205,7 +234,11 @@ const Checkout = () => {
               {/* Left Column - Forms */}
               <div className="space-y-6">
                 <CheckoutForm form={form} />
-                <PromoCode onApply={handlePromoApply} />
+                <PromoCode 
+                  onApply={handlePromoApply} 
+                  appliedCode={promoCode}
+                  onRemove={handlePromoRemove}
+                />
               </div>
 
               {/* Right Column - Order Summary */}
