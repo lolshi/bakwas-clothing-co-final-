@@ -55,54 +55,10 @@
   body {
     @apply text-foreground font-space;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background: linear-gradient(45deg, 
-      rgba(0, 0, 0, 0.8), 
-      rgba(0, 0, 0, 0.6)
-    ),
-    url('/lovable-uploads/17d662a3-8d8f-42c6-b921-9d219349c216.png'),
-    url('/lovable-uploads/73d3331e-1328-4ea2-88a9-ae1966735702.png'),
-    url('/lovable-uploads/404a7477-b058-4b17-bcf7-0fed6fbf63bd.png'),
-    url('/lovable-uploads/44717479-9ab7-4f6e-8b72-fec24768b92e.png');
-    background-size: cover, cover, cover, cover, cover;
-    background-position: center, center, center, center, center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    animation: background-cycle 20s ease-in-out infinite;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-anton;
-  }
-}
-
-@keyframes background-cycle {
-  0%, 25% {
-    background-image: linear-gradient(45deg, 
-      rgba(0, 0, 0, 0.8), 
-      rgba(0, 0, 0, 0.6)
-    ),
-    url('/lovable-uploads/17d662a3-8d8f-42c6-b921-9d219349c216.png');
-  }
-  25%, 50% {
-    background-image: linear-gradient(45deg, 
-      rgba(0, 0, 0, 0.8), 
-      rgba(0, 0, 0, 0.6)
-    ),
-    url('/lovable-uploads/73d3331e-1328-4ea2-88a9-ae1966735702.png');
-  }
-  50%, 75% {
-    background-image: linear-gradient(45deg, 
-      rgba(0, 0, 0, 0.8), 
-      rgba(0, 0, 0, 0.6)
-    ),
-    url('/lovable-uploads/404a7477-b058-4b17-bcf7-0fed6fbf63bd.png');
-  }
-  75%, 100% {
-    background-image: linear-gradient(45deg, 
-      rgba(0, 0, 0, 0.8), 
-      rgba(0, 0, 0, 0.6)
-    ),
-    url('/lovable-uploads/44717479-9ab7-4f6e-8b72-fec24768b92e.png');
   }
 }
 

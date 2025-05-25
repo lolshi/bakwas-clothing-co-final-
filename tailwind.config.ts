@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -70,6 +71,9 @@ export default {
 					orange: '#F97316',
 					mix: '#4FACFE' // A blend color for primary use
 				}
+			},
+			backgroundImage: {
+				'site-pattern': "linear-gradient(45deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/17d662a3-8d8f-42c6-b921-9d219349c216.png')"
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
