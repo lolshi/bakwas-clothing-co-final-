@@ -4,15 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Loader2 } from 'lucide-react';
-
-interface CartItem {
-  id: string;
-  title: string;
-  variant: string;
-  quantity: number;
-  price: number;
-  image: string;
-}
+import { CartItem } from '@/contexts/CartContext';
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -70,7 +62,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                   />
                   <div className="flex-1">
                     <h4 className="font-medium text-sm">{item.title}</h4>
-                    <p className="text-sm text-muted-foreground">{item.variant}</p>
+                    {item.selectedSize && (
+                      <p className="text-sm text-muted-foreground">Size: {item.selectedSize}</p>
+                    )}
                     <p className="text-sm">Qty: {item.quantity}</p>
                   </div>
                   <div className="text-right">
