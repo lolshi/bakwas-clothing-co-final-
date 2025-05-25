@@ -73,7 +73,11 @@ export default {
 				}
 			},
 			backgroundImage: {
-				'site-pattern': "linear-gradient(45deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/17d662a3-8d8f-42c6-b921-9d219349c216.png')"
+				'site-pattern': "linear-gradient(45deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6)), url('/lovable-uploads/17d662a3-8d8f-42c6-b921-9d219349c216.png')",
+				'home': "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/751af69e-9460-4162-b817-21206433367c.png')",
+				'shop': "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('/lovable-uploads/197afee5-f1d5-4347-8941-04914c3b216b.png')",
+				'general': "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('/lovable-uploads/916479c0-6054-46da-be5d-703b6a87267c.png')",
+				'dark-fallback': "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)"
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

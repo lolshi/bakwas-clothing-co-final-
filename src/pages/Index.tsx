@@ -10,10 +10,17 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen text-foreground">
-      <Hero />
-      <USPFlipCards />
-      <ProductGrid />
+    <div className="min-h-screen text-foreground relative">
+      {/* Content wrapper with backdrop for better readability */}
+      <div className="relative z-10">
+        <Hero />
+        <div className="bg-black/40 backdrop-blur-sm">
+          <USPFlipCards />
+        </div>
+        <div className="bg-black/30 backdrop-blur-sm">
+          <ProductGrid />
+        </div>
+      </div>
     </div>
   );
 };

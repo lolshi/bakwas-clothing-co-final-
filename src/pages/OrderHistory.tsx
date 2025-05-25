@@ -66,70 +66,74 @@ const OrderHistory = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen p-4 relative">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-anton mb-2">Order History</h1>
-            <p className="text-muted-foreground">View your past orders and their status</p>
+            <div className="bg-black/60 backdrop-blur-md rounded-lg p-6 mb-6">
+              <h1 className="text-3xl font-anton mb-2 text-white">Order History</h1>
+              <p className="text-gray-300">View your past orders and their status</p>
+            </div>
           </div>
 
-          <Card>
+          <Card className="bg-black/60 backdrop-blur-md border-white/20">
             <CardHeader>
-              <CardTitle>Your Orders</CardTitle>
+              <CardTitle className="text-white">Your Orders</CardTitle>
               <div className="flex gap-4">
                 <Input
                   placeholder="Search by order number..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-sm"
+                  className="max-w-sm bg-black/40 border-white/20 text-white placeholder:text-gray-400"
                 />
               </div>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8">Loading orders...</div>
+                <div className="text-center py-8 text-gray-300">Loading orders...</div>
               ) : filteredOrders.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No orders found</p>
+                  <p className="text-gray-300">No orders found</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order Number</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.order_number}</TableCell>
-                        <TableCell>{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status)}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${order.total_amount.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Download className="h-4 w-4 mr-1" />
-                              Invoice
-                            </Button>
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/20">
+                        <TableHead className="text-gray-200">Order Number</TableHead>
+                        <TableHead className="text-gray-200">Date</TableHead>
+                        <TableHead className="text-gray-200">Status</TableHead>
+                        <TableHead className="text-gray-200">Total</TableHead>
+                        <TableHead className="text-gray-200">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.map((order) => (
+                        <TableRow key={order.id} className="border-white/20 hover:bg-white/5">
+                          <TableCell className="font-medium text-white">{order.order_number}</TableCell>
+                          <TableCell className="text-gray-200">{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-white">${order.total_amount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                                <Download className="h-4 w-4 mr-1" />
+                                Invoice
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

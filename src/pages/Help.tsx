@@ -50,14 +50,16 @@ const Help = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen p-4 relative">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-anton mb-2">Need Help?</h1>
-          <p className="text-muted-foreground">Chat with our AI assistant for instant support</p>
+          <div className="bg-black/60 backdrop-blur-md rounded-lg p-6 mb-6">
+            <h1 className="text-3xl font-anton mb-2 text-white">Need Help?</h1>
+            <p className="text-gray-300">Chat with our AI assistant for instant support</p>
+          </div>
         </div>
 
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-[600px] flex flex-col bg-black/60 backdrop-blur-md border-white/20">
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {messages.map((message) => (
@@ -69,7 +71,7 @@ const Help = () => {
                     className={`max-w-[80%] p-3 rounded-lg ${
                       message.role === 'user'
                         ? 'bg-neon-cyan text-black'
-                        : 'bg-muted text-foreground'
+                        : 'bg-black/60 text-white border border-white/20'
                     }`}
                   >
                     <p className="text-sm">{message.content}</p>
@@ -82,15 +84,20 @@ const Help = () => {
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-white/20">
             <div className="flex gap-2">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Type your message..."
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
               />
-              <Button onClick={sendMessage} disabled={!inputValue.trim()}>
+              <Button 
+                onClick={sendMessage} 
+                disabled={!inputValue.trim()}
+                className="bg-neon-cyan hover:bg-neon-cyan/80 text-black"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>

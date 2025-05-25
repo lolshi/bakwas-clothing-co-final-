@@ -15,13 +15,12 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,225,255,0.1),transparent_50%)] animate-pulse"></div>
-      <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,rgba(139,92,246,0.1),transparent_60%)] animate-gradient-shift"></div>
+    <div className="min-h-screen flex items-center justify-center bg-general bg-cover bg-center bg-fixed relative overflow-hidden">
+      {/* Background overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       
       {/* Content */}
-      <div className="text-center z-10 px-4 max-w-2xl mx-auto">
+      <div className="text-center z-10 px-4 max-w-2xl mx-auto relative">
         {/* Logo */}
         <div className="mb-8">
           <img 
@@ -32,17 +31,17 @@ const NotFound = () => {
         </div>
 
         {/* 404 Text */}
-        <div className="mb-8">
+        <div className="mb-8 bg-black/60 backdrop-blur-md rounded-lg p-8">
           <h1 className="text-8xl md:text-9xl font-anton mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent animate-psychedelic-pulse">
             404
           </h1>
           <h2 className="text-3xl md:text-4xl font-anton mb-4 text-white">
             Page Not Found
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground font-space mb-2">
+          <p className="text-lg md:text-xl text-gray-300 font-space mb-2">
             Looks like you took a wrong turn in the streets
           </p>
-          <p className="text-md text-muted-foreground font-space">
+          <p className="text-md text-gray-400 font-space">
             This page doesn't exist in our digital neighborhood
           </p>
         </div>
