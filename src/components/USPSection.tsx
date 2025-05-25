@@ -24,7 +24,7 @@ const USPSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-background">
+    <section className="py-20 bg-black/30 backdrop-blur-sm">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {usps.map((usp, index) => {
@@ -32,7 +32,7 @@ const USPSection = () => {
             return (
               <div 
                 key={index}
-                className="text-center p-8 rounded-2xl bg-card border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 group hover:scale-105"
+                className="text-center p-8 rounded-2xl bg-black/40 border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 group hover:scale-105 backdrop-blur-sm"
               >
                 <div className="mb-6 flex justify-center">
                   <div className="p-4 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 group-hover:bg-neon-cyan/20 transition-colors">

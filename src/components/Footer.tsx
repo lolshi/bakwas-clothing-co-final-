@@ -3,7 +3,7 @@ import { Instagram, Twitter, Youtube } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-card border-t border-border/50 py-16">
+    <footer className="bg-black/40 border-t border-border/50 py-16 backdrop-blur-sm">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}

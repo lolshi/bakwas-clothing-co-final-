@@ -7,14 +7,14 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-black/50 backdrop-blur supports-[backdrop-filter]:bg-black/30">
+      <div className="container flex h-20 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <img 
             src="/lovable-uploads/6b112a77-ea8e-4f47-b08f-0f2be98c0b2f.png" 
             alt="Bakwas Clothing Co." 
-            className="h-8 w-auto"
+            className="h-16 w-auto"
           />
         </div>
 
@@ -56,7 +56,7 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur">
+        <div className="md:hidden border-t border-border/40 bg-black/50 backdrop-blur">
           <nav className="container py-4 space-y-4">
             <a href="/" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
               Home

@@ -49,7 +49,7 @@ const ProductGrid = () => {
   ];
 
   return (
-    <section className="py-20 bg-background">
+    <section className="py-20 bg-black/30 backdrop-blur-sm">
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
@@ -64,7 +64,7 @@ const ProductGrid = () => {
           {products.map((product) => (
             <div 
               key={product.id}
-              className="group relative bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 hover:scale-105"
+              className="group relative bg-black/40 rounded-2xl overflow-hidden border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
             >
               {product.isHot && (
                 <div className="absolute top-4 left-4 z-10 bg-neon-cyan text-black px-3 py-1 rounded-full text-xs font-space font-bold">
