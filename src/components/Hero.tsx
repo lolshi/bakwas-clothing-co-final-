@@ -23,22 +23,15 @@ const Hero = () => {
         <div className="absolute bottom-32 left-1/4 w-40 h-40 border border-neon-pink rounded-full animate-float" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      {/* Button only - centered */}
-      <div className="relative z-10 text-center">
+      {/* Shop the Drop Button - positioned at bottom center */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
         <Button 
           size="lg" 
-          className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink hover:from-neon-cyan/80 hover:via-neon-purple/80 hover:to-neon-pink/80 text-black font-space font-semibold text-lg px-8 py-6 rounded-xl group transition-all duration-300 hover:scale-105 shadow-2xl"
+          className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink hover:from-neon-cyan/80 hover:via-neon-purple/80 hover:to-neon-pink/80 text-black font-space font-semibold text-lg px-8 py-6 rounded-xl group transition-all duration-300 hover:scale-105 shadow-2xl animate-bounce"
         >
           Shop the Drop
           <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
         </Button>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-neon-cyan rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-neon-cyan rounded-full mt-2 animate-pulse"></div>
-        </div>
       </div>
     </section>
   );

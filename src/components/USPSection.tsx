@@ -1,22 +1,22 @@
 
-import { Rainbow, Zap, Ban } from "lucide-react";
+import { Palette, Scissors, Crown } from "lucide-react";
 
 const USPSection = () => {
   const usps = [
     {
-      icon: Rainbow,
+      icon: Palette,
       title: "TRIPPY MEETS STREET",
       subtitle: "Designs that vibe",
       description: "loud & glow harder."
     },
     {
-      icon: Zap,
+      icon: Scissors,
       title: "OVERSIZED, NOT OVERHYPED",
       subtitle: "Custom cuts",
       description: "that flow with you."
     },
     {
-      icon: Ban,
+      icon: Crown,
       title: "NO MASS DROPOUTS",
       subtitle: "Limited drops.",
       description: "No restocks."
@@ -45,7 +45,7 @@ const USPSection = () => {
               >
                 <div className="mb-6 flex justify-center">
                   <div className={`p-4 rounded-full bg-gradient-to-br ${gradientColors[index]} bg-opacity-10 border border-opacity-20 group-hover:bg-opacity-20 transition-colors`}>
-                    <Icon className={`h-8 w-8 bg-gradient-to-r ${gradientColors[index]} bg-clip-text text-transparent`} />
+                    <Icon className={`h-8 w-8 text-white group-hover:text-transparent group-hover:bg-gradient-to-r ${gradientColors[index]} group-hover:bg-clip-text transition-all`} />
                   </div>
                 </div>
                 
