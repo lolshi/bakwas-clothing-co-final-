@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { Product } from '@/pages/Shop';
 import { ImageCarousel } from './ImageCarousel';
+import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
+import { useToast } from '@/components/ui/use-toast';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -15,8 +18,35 @@ interface QuickViewModalProps {
 
 export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose }) => {
   const [selectedSize, setSelectedSize] = useState('');
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { toast } = useToast();
 
   if (!product) return null;
+
+  const handleAddToCart = () => {
+    addToCart(product, selectedSize);
+    toast({
+      title: "Added to cart!",
+      description: `${product.title} has been added to your cart.`,
+    });
+  };
+
+  const handleWishlistToggle = () => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+      toast({
+        title: "Removed from wishlist",
+        description: `${product.title} has been removed from your wishlist.`,
+      });
+    } else {
+      addToWishlist(product);
+      toast({
+        title: "Added to wishlist!",
+        description: `${product.title} has been added to your wishlist.`,
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -78,12 +108,22 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
               <Button 
                 className="flex-1 bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-cyan/80 hover:to-neon-purple/80 text-black font-semibold"
                 disabled={!selectedSize}
+                onClick={handleAddToCart}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart
               </Button>
-              <Button variant="outline" size="icon">
-                <Heart className="h-4 w-4" />
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleWishlistToggle}
+                className={`${
+                  isInWishlist(product.id) 
+                    ? 'border-neon-pink bg-neon-pink/10 text-neon-pink hover:bg-neon-pink/20' 
+                    : 'hover:bg-neon-pink/10 hover:border-neon-pink'
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
               </Button>
             </div>
           </div>

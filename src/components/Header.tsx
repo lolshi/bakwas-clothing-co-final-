@@ -1,19 +1,26 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, User } from "lucide-react";
+import { Menu, X, ShoppingCart, User, Heart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { adminUser } = useAdminAuth();
+  const { user } = useAuth();
+  const { itemCount } = useCart();
   const location = useLocation();
   
   // Hide admin links on public pages
   const isPublicPage = !location.pathname.startsWith('/admin');
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Check if user has admin role (you can customize this logic based on your user role system)
+  const isAdmin = adminUser || (user?.user_metadata?.role === 'admin');
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-border/50">
@@ -39,7 +46,7 @@ const Header = () => {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Only show admin link on public pages and if user is admin */}
-            {isPublicPage && adminUser && (
+            {isPublicPage && isAdmin && (
               <Link to="/admin">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
                   Admin Panel
@@ -47,13 +54,18 @@ const Header = () => {
               </Link>
             )}
             {/* Only show admin login if no admin user and on public pages */}
-            {isPublicPage && !adminUser && (
+            {isPublicPage && !adminUser && !isAdmin && (
               <Link to="/admin/login">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
                   Admin
                 </Button>
               </Link>
             )}
+            <Link to="/wishlist">
+              <Button variant="ghost" size="sm">
+                <Heart className="h-4 w-4" />
+              </Button>
+            </Link>
             <Link to="/login">
               <Button variant="ghost" size="sm">
                 <User className="h-4 w-4 mr-2" />
@@ -63,9 +75,11 @@ const Header = () => {
             <Link to="/cart">
               <Button variant="ghost" size="sm" className="relative">
                 <ShoppingCart className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  0
-                </span>
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                    {itemCount}
+                  </span>
+                )}
               </Button>
             </Link>
           </div>
@@ -99,20 +113,25 @@ const Header = () => {
               </Link>
               <div className="flex items-center space-x-4 pt-4 border-t border-border/50">
                 {/* Only show admin link on public pages */}
-                {isPublicPage && adminUser && (
+                {isPublicPage && isAdmin && (
                   <Link to="/admin" onClick={toggleMenu}>
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
                       Admin Panel
                     </Button>
                   </Link>
                 )}
-                {isPublicPage && !adminUser && (
+                {isPublicPage && !adminUser && !isAdmin && (
                   <Link to="/admin/login" onClick={toggleMenu}>
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-neon-cyan">
                       Admin
                     </Button>
                   </Link>
                 )}
+                <Link to="/wishlist" onClick={toggleMenu}>
+                  <Button variant="ghost" size="sm">
+                    <Heart className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <Link to="/login" onClick={toggleMenu}>
                   <Button variant="ghost" size="sm">
                     <User className="h-4 w-4 mr-2" />
@@ -122,9 +141,11 @@ const Header = () => {
                 <Link to="/cart" onClick={toggleMenu}>
                   <Button variant="ghost" size="sm" className="relative">
                     <ShoppingCart className="h-4 w-4" />
-                    <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      0
-                    </span>
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {itemCount}
+                      </span>
+                    )}
                   </Button>
                 </Link>
               </div>

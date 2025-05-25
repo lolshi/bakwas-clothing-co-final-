@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import ProtectedAdminRoute from "@/components/admin/ProtectedAdminRoute";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
@@ -26,6 +28,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Blogs from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
+import Wishlist from "./pages/Wishlist";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
@@ -50,76 +53,81 @@ const App = () => (
     <BrowserRouter>
       <AuthProvider>
         <AdminAuthProvider>
-          <TooltipProvider delayDuration={300}>
-            <div className="min-h-screen">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/checkout" element={<Checkout />} />
-                
-                {/* New Content Pages */}
-                <Route path="/help" element={<Help />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/returns-policy" element={<ReturnsPolicy />} />
-                <Route path="/order-history" element={<OrderHistory />} />
-                <Route path="/return-request" element={<ReturnRequest />} />
-                <Route path="/faqs" element={<FAQs />} />
-                <Route path="/account" element={<MyAccount />} />
-                <Route path="/company" element={<Company />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/blogs" element={<Blogs />} />
-                <Route path="/blogs/:slug" element={<BlogDetail />} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin" element={
-                  <ProtectedAdminRoute>
-                    <AdminDashboard />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/products" element={
-                  <ProtectedAdminRoute>
-                    <AdminProducts />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/orders" element={
-                  <ProtectedAdminRoute>
-                    <AdminOrders />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/homepage" element={
-                  <ProtectedAdminRoute>
-                    <AdminHomepage />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/promo-codes" element={
-                  <ProtectedAdminRoute>
-                    <AdminPromoCodes />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/content" element={
-                  <ProtectedAdminRoute>
-                    <AdminContent />
-                  </ProtectedAdminRoute>
-                } />
-                <Route path="/admin/blog" element={
-                  <ProtectedAdminRoute>
-                    <AdminBlog />
-                  </ProtectedAdminRoute>
-                } />
-                
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <TooltipProvider delayDuration={300}>
+                <div className="min-h-screen">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    
+                    {/* New Content Pages */}
+                    <Route path="/help" element={<Help />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/returns-policy" element={<ReturnsPolicy />} />
+                    <Route path="/order-history" element={<OrderHistory />} />
+                    <Route path="/return-request" element={<ReturnRequest />} />
+                    <Route path="/faqs" element={<FAQs />} />
+                    <Route path="/account" element={<MyAccount />} />
+                    <Route path="/company" element={<Company />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/blogs" element={<Blogs />} />
+                    <Route path="/blogs/:slug" element={<BlogDetail />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin" element={
+                      <ProtectedAdminRoute>
+                        <AdminDashboard />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/products" element={
+                      <ProtectedAdminRoute>
+                        <AdminProducts />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/orders" element={
+                      <ProtectedAdminRoute>
+                        <AdminOrders />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/homepage" element={
+                      <ProtectedAdminRoute>
+                        <AdminHomepage />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/promo-codes" element={
+                      <ProtectedAdminRoute>
+                        <AdminPromoCodes />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/content" element={
+                      <ProtectedAdminRoute>
+                        <AdminContent />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/blog" element={
+                      <ProtectedAdminRoute>
+                        <AdminBlog />
+                      </ProtectedAdminRoute>
+                    } />
+                    
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </WishlistProvider>
+          </CartProvider>
         </AdminAuthProvider>
       </AuthProvider>
     </BrowserRouter>
