@@ -52,7 +52,7 @@ const Login = () => {
         <Card className="bg-card/90 backdrop-blur-sm border-border shadow-xl animate-in fade-in duration-300">
           <CardHeader className="text-center">
             <img 
-              src="/lovable-uploads/40fa6e4a-a62b-4c00-b9c8-e3077d47e80b.png" 
+              src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
               alt="Bakwas Clothing Co." 
               className="h-12 w-auto mx-auto mb-4"
             />

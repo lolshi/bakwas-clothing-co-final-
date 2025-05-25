@@ -43,15 +43,11 @@ const Hero = () => {
   // Fallback hero if no banners are available
   const defaultHero = (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background/80 to-black">
-      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="absolute inset-0 bg-[url('/lovable-uploads/9ca1b5b5-09ad-44d4-abd5-c4b3cd6cbaed.png')] bg-cover bg-center opacity-20"></div>
       <div className="container relative z-10 text-center">
-        <div className="mb-8">
-          <img 
-            src="/lovable-uploads/40fa6e4a-a62b-4c00-b9c8-e3077d47e80b.png" 
-            alt="Bakwas Clothing Co." 
-            className="h-32 md:h-40 lg:h-48 w-auto mx-auto neon-glow"
-          />
-        </div>
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-anton mb-6 neon-glow">
+          BAKWAS
+        </h1>
         <p className="text-xl md:text-2xl font-space mb-8 text-muted-foreground max-w-2xl mx-auto">
           Street culture redefined. Where rebellion meets style.
         </p>
@@ -94,13 +90,11 @@ const Hero = () => {
           <div className="absolute inset-0 bg-black/50"></div>
         </div>
         <div className="container relative z-10 text-center">
-          <div className="mb-8">
-            <img 
-              src="/lovable-uploads/40fa6e4a-a62b-4c00-b9c8-e3077d47e80b.png" 
-              alt="Bakwas Clothing Co." 
-              className="h-32 md:h-40 lg:h-48 w-auto mx-auto neon-glow"
-            />
-          </div>
+          {banner.title && (
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-anton mb-6 neon-glow">
+              {banner.title}
+            </h1>
+          )}
           {banner.subtitle && (
             <p className="text-xl md:text-2xl font-space mb-8 text-muted-foreground max-w-2xl mx-auto">
               {banner.subtitle}
@@ -137,13 +131,11 @@ const Hero = () => {
                   <div className="absolute inset-0 bg-black/50"></div>
                 </div>
                 <div className="container relative z-10 text-center">
-                  <div className="mb-8">
-                    <img 
-                      src="/lovable-uploads/40fa6e4a-a62b-4c00-b9c8-e3077d47e80b.png" 
-                      alt="Bakwas Clothing Co." 
-                      className="h-32 md:h-40 lg:h-48 w-auto mx-auto neon-glow"
-                    />
-                  </div>
+                  {banner.title && (
+                    <h1 className="text-6xl md:text-8xl lg:text-9xl font-anton mb-6 neon-glow">
+                      {banner.title}
+                    </h1>
+                  )}
                   {banner.subtitle && (
                     <p className="text-xl md:text-2xl font-space mb-8 text-muted-foreground max-w-2xl mx-auto">
                       {banner.subtitle}
