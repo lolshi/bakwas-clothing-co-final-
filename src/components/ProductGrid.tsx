@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 interface Product {
   id: string;
@@ -15,6 +17,8 @@ interface Product {
 const ProductGrid = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -36,6 +40,33 @@ const ProductGrid = () => {
       console.error('Error fetching featured products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddToCart = (product: Product) => {
+    const transformedProduct = {
+      id: product.id,
+      title: product.name,
+      price: product.price,
+      image: product.images?.[0] || "/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png",
+      images: product.images || ["/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png"]
+    };
+    addToCart(transformedProduct);
+  };
+
+  const handleWishlistToggle = (product: Product) => {
+    const transformedProduct = {
+      id: product.id,
+      title: product.name,
+      price: product.price,
+      image: product.images?.[0] || "/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png",
+      category: 'featured'
+    };
+
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(transformedProduct);
     }
   };
 
@@ -113,13 +144,23 @@ const ProductGrid = () => {
 
                 <div className="flex items-center justify-between">
                   <Button 
-                    className="flex-1 mr-2 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-space font-semibold"
+                    className="flex-1 mr-2 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-space font-semibold transition-all transform hover:scale-105"
+                    onClick={() => handleAddToCart(product)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline" size="icon" className="border-neon-cyan/20 hover:bg-neon-cyan/10">
-                    <Heart className="h-4 w-4" />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className={`${
+                      isInWishlist(product.id) 
+                        ? 'border-neon-pink bg-neon-pink/10 text-neon-pink hover:bg-neon-pink/20' 
+                        : 'border-neon-cyan/20 hover:bg-neon-cyan/10 hover:border-neon-pink hover:text-neon-pink'
+                    } transition-all transform hover:scale-110`}
+                    onClick={() => handleWishlistToggle(product)}
+                  >
+                    <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                   </Button>
                 </div>
               </div>

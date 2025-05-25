@@ -62,11 +62,11 @@ const Wishlist = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="group relative bg-card rounded-lg overflow-hidden border border-border hover:border-neon-cyan/50 transition-all duration-300"
+                className="group relative bg-card rounded-lg overflow-hidden border border-border hover:border-neon-cyan/50 transition-all duration-300 animate-fade-in"
               >
                 <div className="aspect-square overflow-hidden">
                   <img
@@ -88,7 +88,7 @@ const Wishlist = () => {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleAddToCart(item)}
-                      className="flex-1 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-space font-semibold"
+                      className="flex-1 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-space font-semibold transition-all transform hover:scale-105"
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
@@ -97,7 +97,7 @@ const Wishlist = () => {
                       variant="outline"
                       size="icon"
                       onClick={() => handleRemoveFromWishlist(item.id)}
-                      className="border-red-500/20 hover:bg-red-500/10 hover:border-red-500"
+                      className="border-red-500/20 hover:bg-red-500/10 hover:border-red-500 transition-all transform hover:scale-110"
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>

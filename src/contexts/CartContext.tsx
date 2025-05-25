@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 export interface CartItem {
   id: string;
@@ -63,12 +64,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existingItem = prevItems.find(item => item.id === cartItemId);
       
       if (existingItem) {
+        toast({
+          title: "Quantity updated!",
+          description: `${product.title} quantity increased in cart.`,
+        });
         return prevItems.map(item =>
           item.id === cartItemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
+        toast({
+          title: "Added to cart!",
+          description: `${product.title} has been added to your cart.`,
+        });
         return [...prevItems, {
           id: cartItemId,
           title: product.title,
@@ -82,7 +91,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+    setItems(prevItems => {
+      const item = prevItems.find(item => item.id === id);
+      if (item) {
+        toast({
+          title: "Item removed",
+          description: `${item.title} has been removed from your cart.`,
+        });
+      }
+      return prevItems.filter(item => item.id !== id);
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -100,6 +118,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     setItems([]);
+    toast({
+      title: "Cart cleared",
+      description: "All items have been removed from your cart.",
+    });
   };
 
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

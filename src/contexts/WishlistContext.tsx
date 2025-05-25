@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 export interface WishlistItem {
   id: string;
@@ -34,7 +35,15 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const savedWishlist = localStorage.getItem('bakwas-wishlist');
     if (savedWishlist) {
-      setItems(JSON.parse(savedWishlist));
+      try {
+        const parsedWishlist = JSON.parse(savedWishlist);
+        if (Array.isArray(parsedWishlist)) {
+          setItems(parsedWishlist);
+        }
+      } catch (error) {
+        console.error('Error parsing wishlist from localStorage:', error);
+        localStorage.removeItem('bakwas-wishlist');
+      }
     }
   }, []);
 
@@ -56,12 +65,25 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (prevItems.find(item => item.id === product.id)) {
         return prevItems; // Already in wishlist
       }
+      toast({
+        title: "Added to wishlist!",
+        description: `${product.title} has been added to your wishlist.`,
+      });
       return [...prevItems, wishlistItem];
     });
   };
 
   const removeFromWishlist = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+    setItems(prevItems => {
+      const item = prevItems.find(item => item.id === id);
+      if (item) {
+        toast({
+          title: "Removed from wishlist",
+          description: `${item.title} has been removed from your wishlist.`,
+        });
+      }
+      return prevItems.filter(item => item.id !== id);
+    });
   };
 
   const isInWishlist = (id: string) => {
@@ -70,6 +92,10 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const clearWishlist = () => {
     setItems([]);
+    toast({
+      title: "Wishlist cleared",
+      description: "All items have been removed from your wishlist.",
+    });
   };
 
   const value = {

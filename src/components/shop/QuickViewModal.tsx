@@ -8,7 +8,6 @@ import { Product } from '@/pages/Shop';
 import { ImageCarousel } from './ImageCarousel';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { useToast } from '@/components/ui/use-toast';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -20,31 +19,18 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
   const [selectedSize, setSelectedSize] = useState('');
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { toast } = useToast();
 
   if (!product) return null;
 
   const handleAddToCart = () => {
     addToCart(product, selectedSize);
-    toast({
-      title: "Added to cart!",
-      description: `${product.title} has been added to your cart.`,
-    });
   };
 
   const handleWishlistToggle = () => {
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
-      toast({
-        title: "Removed from wishlist",
-        description: `${product.title} has been removed from your wishlist.`,
-      });
     } else {
       addToWishlist(product);
-      toast({
-        title: "Added to wishlist!",
-        description: `${product.title} has been added to your wishlist.`,
-      });
     }
   };
 

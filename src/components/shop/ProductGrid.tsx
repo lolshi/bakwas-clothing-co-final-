@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, ShoppingCart } from 'lucide-react';
+import { Eye, ShoppingCart, Heart } from 'lucide-react';
 import { FilterState, Product } from '@/pages/Shop';
 import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 interface ProductGridProps {
   filters: FilterState;
@@ -87,6 +90,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
   const [page, setPage] = useState(1);
   const itemsPerPage = 8;
 
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -119,9 +125,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         images: product.images || ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png']
       }));
 
-      setProducts(transformedProducts);
+      // If no products from Supabase, use mock data
+      setProducts(transformedProducts.length > 0 ? transformedProducts : mockProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts(mockProducts);
     } finally {
       setLoading(false);
     }
@@ -178,6 +186,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
   };
 
   const handleAddToCart = (product: Product) => {
+    addToCart(product);
     // Fire GTM event
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'add_to_cart', {
@@ -192,8 +201,14 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         }]
       });
     }
-    
-    console.log('Added to cart:', product.title);
+  };
+
+  const handleWishlistToggle = (product: Product) => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   const loadMore = () => {
@@ -249,9 +264,21 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
                 <Button
                   size="icon"
                   onClick={() => handleAddToCart(product)}
-                  className="bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-cyan/80 hover:to-neon-purple/80 text-black"
+                  className="bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-cyan/80 hover:to-neon-purple/80 text-black transition-all transform hover:scale-110"
                 >
                   <ShoppingCart className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => handleWishlistToggle(product)}
+                  className={`${
+                    isInWishlist(product.id) 
+                      ? 'border-neon-pink bg-neon-pink/10 text-neon-pink hover:bg-neon-pink/20' 
+                      : 'border-white/20 bg-white/10 text-white hover:border-neon-pink hover:text-neon-pink'
+                  } transition-all transform hover:scale-110`}
+                >
+                  <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                 </Button>
               </div>
             </div>
