@@ -20,54 +20,63 @@ import AdminOrders from "./pages/AdminOrders";
 import AdminHomepage from "./pages/AdminHomepage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AdminAuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/checkout" element={<Checkout />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={
-                <ProtectedAdminRoute>
-                  <AdminDashboard />
-                </ProtectedAdminRoute>
-              } />
-              <Route path="/admin/products" element={
-                <ProtectedAdminRoute>
-                  <AdminProducts />
-                </ProtectedAdminRoute>
-              } />
-              <Route path="/admin/orders" element={
-                <ProtectedAdminRoute>
-                  <AdminOrders />
-                </ProtectedAdminRoute>
-              } />
-              <Route path="/admin/homepage" element={
-                <ProtectedAdminRoute>
-                  <AdminHomepage />
-                </ProtectedAdminRoute>
-              } />
-              
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AdminAuthProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AdminAuthProvider>
+          <TooltipProvider delayDuration={300}>
+            <div className="min-h-screen">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/checkout" element={<Checkout />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={
+                  <ProtectedAdminRoute>
+                    <AdminDashboard />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/products" element={
+                  <ProtectedAdminRoute>
+                    <AdminProducts />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/orders" element={
+                  <ProtectedAdminRoute>
+                    <AdminOrders />
+                  </ProtectedAdminRoute>
+                } />
+                <Route path="/admin/homepage" element={
+                  <ProtectedAdminRoute>
+                    <AdminHomepage />
+                  </ProtectedAdminRoute>
+                } />
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </AdminAuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
