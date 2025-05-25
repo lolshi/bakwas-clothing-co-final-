@@ -29,18 +29,27 @@ const USPSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {usps.map((usp, index) => {
             const Icon = usp.icon;
+            const gradientColors = [
+              'from-neon-cyan to-neon-purple',
+              'from-neon-purple to-neon-pink', 
+              'from-neon-pink to-neon-cyan'
+            ];
+            const borderColors = ['border-neon-cyan/50', 'border-neon-purple/50', 'border-neon-pink/50'];
+            const hoverBorderColors = ['hover:border-neon-cyan', 'hover:border-neon-purple', 'hover:border-neon-pink'];
+            const textColors = ['group-hover:text-neon-cyan', 'group-hover:text-neon-purple', 'group-hover:text-neon-pink'];
+            
             return (
               <div 
                 key={index}
-                className="text-center p-8 rounded-2xl bg-black/40 border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 group hover:scale-105 backdrop-blur-sm"
+                className={`text-center p-8 rounded-2xl bg-black/40 border ${borderColors[index]} ${hoverBorderColors[index]} transition-all duration-300 group hover:scale-105 backdrop-blur-sm`}
               >
                 <div className="mb-6 flex justify-center">
-                  <div className="p-4 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 group-hover:bg-neon-cyan/20 transition-colors">
-                    <Icon className="h-8 w-8 text-neon-cyan" />
+                  <div className={`p-4 rounded-full bg-gradient-to-br ${gradientColors[index]} bg-opacity-10 border border-opacity-20 group-hover:bg-opacity-20 transition-colors`}>
+                    <Icon className={`h-8 w-8 bg-gradient-to-r ${gradientColors[index]} bg-clip-text text-transparent`} />
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-anton mb-2 text-foreground group-hover:text-neon-cyan transition-colors">
+                <h3 className={`text-xl font-anton mb-2 text-foreground ${textColors[index]} transition-colors`}>
                   {usp.title}
                 </h3>
                 <p className="text-lg font-space font-medium text-muted-foreground mb-1">

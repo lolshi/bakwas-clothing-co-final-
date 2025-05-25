@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,12 +62,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Bakwas brand colors
+				// Updated Bakwas brand colors with gradient mix
 				neon: {
 					cyan: '#00E1FF',
 					purple: '#8B5CF6',
 					pink: '#EC4899',
-					orange: '#F97316'
+					orange: '#F97316',
+					mix: '#4FACFE' // A blend color for primary use
 				}
 			},
 			borderRadius: {
