@@ -10,12 +10,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen text-foreground relative">
-      {/* Content wrapper with backdrop for better readability */}
-      <div className="relative z-10">
-        <Hero />
-        <div className="bg-black/30 backdrop-blur-sm">
-          <ProductGrid />
-        </div>
+      <Hero />
+      <div className="bg-black/30 backdrop-blur-sm">
+        <ProductGrid />
       </div>
     </div>
   );
