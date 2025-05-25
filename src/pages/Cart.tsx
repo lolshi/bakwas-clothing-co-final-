@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -105,8 +106,6 @@ const Cart = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <Header />
-      
       {/* Logo */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
         <img 
@@ -323,8 +322,6 @@ const Cart = () => {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 };
