@@ -11,11 +11,11 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Hero Banner Background - Using the new psychedelic image */}
+      {/* Hero Banner Background - Using the new BAKWAS logo image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/lovable-uploads/2cdd5801-8016-4547-9f0c-0eb54c786a12.png')"
+          backgroundImage: "url('/lovable-uploads/b687c006-4250-445a-9bac-26f34cf86b87.png')"
         }}
       />
       
