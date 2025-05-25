@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Box } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Box, Star } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -22,6 +22,7 @@ interface Product {
   price: number;
   stock_quantity: number;
   is_active: boolean;
+  is_featured?: boolean;
   color: string;
   tags: string[];
   images: string[];
@@ -52,7 +53,8 @@ const AdminProducts = () => {
     tags: '',
     category_ids: [] as string[],
     images: [] as string[],
-    is_active: true
+    is_active: true,
+    is_featured: false
   });
 
   useEffect(() => {
@@ -107,7 +109,8 @@ const AdminProducts = () => {
       tags: '',
       category_ids: [],
       images: [],
-      is_active: true
+      is_active: true,
+      is_featured: false
     });
     setEditingProduct(null);
   };
@@ -128,7 +131,8 @@ const AdminProducts = () => {
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         category_ids: formData.category_ids,
         images: formData.images,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        is_featured: formData.is_featured
       };
 
       let error;
@@ -178,7 +182,8 @@ const AdminProducts = () => {
       tags: product.tags?.join(', ') || '',
       category_ids: product.category_ids || [],
       images: product.images || [],
-      is_active: product.is_active
+      is_active: product.is_active,
+      is_featured: product.is_featured || false
     });
     setIsAddDialogOpen(true);
   };
@@ -202,6 +207,30 @@ const AdminProducts = () => {
       toast({
         title: "Error",
         description: "Failed to update product status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleFeaturedStatus = async (productId: string, isFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_featured: !isFeatured })
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      fetchProducts();
+      toast({
+        title: "Success",
+        description: `Product ${!isFeatured ? 'added to' : 'removed from'} featured`,
+      });
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update featured status",
         variant: "destructive",
       });
     }
@@ -303,13 +332,23 @@ const AdminProducts = () => {
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  />
-                  <Label htmlFor="active">Active (visible on site)</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                    />
+                    <Label htmlFor="active">Active (visible on site)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="featured"
+                      checked={formData.is_featured}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+                    />
+                    <Label htmlFor="featured">Featured on Homepage</Label>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">
@@ -337,6 +376,12 @@ const AdminProducts = () => {
                       {!product.is_active && (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
+                      {product.is_featured && (
+                        <Badge className="bg-neon-cyan text-black">
+                          <Star className="h-3 w-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
                       {product.stock_quantity === 0 && (
                         <Badge variant="destructive">Out of Stock</Badge>
                       )}
@@ -344,6 +389,13 @@ const AdminProducts = () => {
                     <p className="text-muted-foreground mt-1">{product.description}</p>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleFeaturedStatus(product.id, product.is_featured || false)}
+                    >
+                      <Star className={`h-4 w-4 ${product.is_featured ? 'fill-current text-neon-cyan' : ''}`} />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -358,7 +410,7 @@ const AdminProducts = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                   <div>
                     <span className="font-medium">Price:</span>
                     <p>₹{product.price}</p>
@@ -374,6 +426,10 @@ const AdminProducts = () => {
                   <div>
                     <span className="font-medium">Tags:</span>
                     <p>{product.tags?.join(', ') || 'None'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Featured:</span>
+                    <p>{product.is_featured ? 'Yes' : 'No'}</p>
                   </div>
                 </div>
               </CardContent>

@@ -1,52 +1,77 @@
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  images: string[] | null;
+  is_featured: boolean;
+}
 
 const ProductGrid = () => {
-  const products = [
-    {
-      id: 1,
-      name: "Cosmic Astronaut Tee",
-      price: "₹1,999",
-      image: "/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png",
-      isHot: true
-    },
-    {
-      id: 2,
-      name: "Reality Dump Tee",
-      price: "₹1,899",
-      image: "/lovable-uploads/ff44b883-13f3-4aa0-b0e9-b170b00e8311.png",
-      isHot: false
-    },
-    {
-      id: 3,
-      name: "Kernel Panic Tee",
-      price: "₹1,999",
-      image: "/lovable-uploads/14a3ddc7-f46d-42ce-90fd-3937f6a2ad9c.png",
-      isHot: true
-    },
-    {
-      id: 4,
-      name: "Open Your Mind Tee",
-      price: "₹1,899",
-      image: "/lovable-uploads/74ef635a-d462-4782-ad34-91d7888e17ba.png",
-      isHot: false
-    },
-    {
-      id: 5,
-      name: "Bakwas Classic Tank",
-      price: "₹1,499",
-      image: "/lovable-uploads/aae6428d-9a3d-4b45-87c4-900c7fe5558e.png",
-      isHot: false
-    },
-    {
-      id: 6,
-      name: "Psychedelic Brain Tee",
-      price: "₹1,999",
-      image: "/lovable-uploads/ff44b883-13f3-4aa0-b0e9-b170b00e8311.png",
-      isHot: true
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, price, images, is_featured')
+        .eq('is_featured', true)
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setFeaturedProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching featured products:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-black/30 backdrop-blur-sm">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
+              🔥 HOT RIGHT NOW
+            </h2>
+            <p className="text-lg font-space text-muted-foreground">
+              Loading featured products...
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (featuredProducts.length === 0) {
+    return (
+      <section className="py-20 bg-black/30 backdrop-blur-sm">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
+              🔥 HOT RIGHT NOW
+            </h2>
+            <p className="text-lg font-space text-muted-foreground">
+              No featured products available at the moment
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-black/30 backdrop-blur-sm">
@@ -61,20 +86,18 @@ const ProductGrid = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product) => (
+          {featuredProducts.map((product) => (
             <div 
               key={product.id}
               className="group relative bg-black/40 rounded-2xl overflow-hidden border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
             >
-              {product.isHot && (
-                <div className="absolute top-4 left-4 z-10 bg-neon-cyan text-black px-3 py-1 rounded-full text-xs font-space font-bold">
-                  🔥 HOT
-                </div>
-              )}
+              <div className="absolute top-4 left-4 z-10 bg-neon-cyan text-black px-3 py-1 rounded-full text-xs font-space font-bold">
+                🔥 HOT
+              </div>
 
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src={product.image}
+                  src={product.images?.[0] || "/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png"}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
@@ -85,7 +108,7 @@ const ProductGrid = () => {
                   {product.name}
                 </h3>
                 <p className="text-2xl font-anton text-neon-cyan mb-4">
-                  {product.price}
+                  ₹{product.price.toLocaleString()}
                 </p>
 
                 <div className="flex items-center justify-between">
