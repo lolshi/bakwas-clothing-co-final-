@@ -38,6 +38,7 @@ import AdminHomepage from "./pages/AdminHomepage";
 import AdminPromoCodes from "./pages/AdminPromoCodes";
 import AdminContent from "./pages/AdminContent";
 import AdminBlog from "./pages/AdminBlog";
+import AdminPaymentSettings from "./pages/AdminPaymentSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -118,6 +119,11 @@ const App = () => (
                     <Route path="/admin/blog" element={
                       <ProtectedAdminRoute>
                         <AdminBlog />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/payments" element={
+                      <ProtectedAdminRoute>
+                        <AdminPaymentSettings />
                       </ProtectedAdminRoute>
                     } />
                     

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +25,7 @@ const Checkout = () => {
   const [promoCode, setPromoCode] = useState('');
   const [promoCodeData, setPromoCodeData] = useState(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [enabledPaymentMethods, setEnabledPaymentMethods] = useState<string[]>([]);
 
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -44,7 +44,24 @@ const Checkout = () => {
 
   useEffect(() => {
     setSubtotal(cartTotal);
+    fetchEnabledPaymentMethods();
   }, [cartTotal]);
+
+  const fetchEnabledPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('name')
+        .eq('enabled', true);
+
+      if (error) throw error;
+      setEnabledPaymentMethods(data?.map(method => method.name) || []);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      // Fallback to default methods if fetch fails
+      setEnabledPaymentMethods(['Razorpay', 'Cash on Delivery']);
+    }
+  };
 
   const shippingCost = subtotal > 2000 ? 0 : 50;
   const total = subtotal - discount + shippingCost;
@@ -129,39 +146,42 @@ const Checkout = () => {
           .eq('id', promoCodeData.id);
       }
 
-      // Mock Razorpay integration
-      const options = {
-        key: 'rzp_test_your_key_here', // Replace with actual Razorpay key
-        amount: total * 100, // Razorpay expects amount in paise
-        currency: 'INR',
-        name: 'Bakwas Clothing Co.',
-        description: 'Order Payment',
-        order_id: orderId,
-        handler: function (response: any) {
-          // Payment successful
-          toast({
-            title: "Payment successful!",
-            description: "Redirecting to order confirmation...",
-          });
-          
-          setTimeout(() => {
-            navigate(`/order-success/${orderId}`);
-          }, 1000);
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone,
-        },
-        theme: {
-          color: '#00E1FF',
-        },
-        modal: {
-          ondismiss: function() {
-            setIsProcessingPayment(false);
+      // Show available payment methods based on admin settings
+      if (enabledPaymentMethods.includes('Razorpay')) {
+        // Mock Razorpay integration
+        const options = {
+          key: 'rzp_test_your_key_here', // Replace with actual Razorpay key
+          amount: total * 100, // Razorpay expects amount in paise
+          currency: 'INR',
+          name: 'Bakwas Clothing Co.',
+          description: 'Order Payment',
+          order_id: orderId,
+          handler: function (response: any) {
+            // Payment successful
+            toast({
+              title: "Payment successful!",
+              description: "Redirecting to order confirmation...",
+            });
+            
+            setTimeout(() => {
+              navigate(`/order-success/${orderId}`);
+            }, 1000);
+          },
+          prefill: {
+            name: formData.name,
+            email: formData.email,
+            contact: formData.phone,
+          },
+          theme: {
+            color: '#00E1FF',
+          },
+          modal: {
+            ondismiss: function() {
+              setIsProcessingPayment(false);
+            }
           }
-        }
-      };
+        };
+      }
 
       // For demo purposes, simulate payment success after 2 seconds
       setTimeout(() => {
@@ -241,6 +261,18 @@ const Checkout = () => {
                     onRemove={handlePromoRemove}
                   />
                 </div>
+                {enabledPaymentMethods.length > 0 && (
+                  <div className="bg-card/80 backdrop-blur-sm rounded-lg p-6 border border-border">
+                    <h3 className="text-lg font-semibold mb-4">Available Payment Methods</h3>
+                    <div className="space-y-2">
+                      {enabledPaymentMethods.map((method) => (
+                        <div key={method} className="flex items-center p-2 bg-gray-100 rounded">
+                          <span className="text-gray-800">{method}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Column - Order Summary */}

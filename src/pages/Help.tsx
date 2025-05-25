@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, MessageCircle, X } from 'lucide-react';
+import { Send, MessageCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -23,9 +23,8 @@ const Help = () => {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -37,24 +36,17 @@ const Help = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
-    setIsLoading(true);
 
-    try {
-      // Simulate AI response - replace with actual OpenAI endpoint
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: 'Thank you for your question. I\'m here to help with information about our products, shipping, returns, and more. What specific information are you looking for?',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setIsLoading(false);
-    }
+    // Always respond with the same static message
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Hello! I\'m here to help you with any questions about Bakwas Clothing Co. How can I assist you today?',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    }, 500);
   };
 
   return (
@@ -87,13 +79,6 @@ const Help = () => {
                   </div>
                 </div>
               ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted p-3 rounded-lg">
-                    <p className="text-sm">Typing...</p>
-                  </div>
-                </div>
-              )}
             </div>
           </ScrollArea>
 
@@ -104,9 +89,8 @@ const Help = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Type your message..."
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                disabled={isLoading}
               />
-              <Button onClick={sendMessage} disabled={isLoading || !inputValue.trim()}>
+              <Button onClick={sendMessage} disabled={!inputValue.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>

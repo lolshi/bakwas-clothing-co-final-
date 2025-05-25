@@ -305,6 +305,30 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category_ids: string[] | null
@@ -436,6 +460,7 @@ export type Database = {
           order_id: string | null
           photos: string[] | null
           reason: string
+          request_type: string | null
           status: string | null
           updated_at: string | null
         }
@@ -449,6 +474,7 @@ export type Database = {
           order_id?: string | null
           photos?: string[] | null
           reason: string
+          request_type?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -462,6 +488,7 @@ export type Database = {
           order_id?: string | null
           photos?: string[] | null
           reason?: string
+          request_type?: string | null
           status?: string | null
           updated_at?: string | null
         }
