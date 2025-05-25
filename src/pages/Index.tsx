@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import Hero from "@/components/Hero";
-import USPSection from "@/components/USPSection";
+import USPFlipCards from "@/components/USPFlipCards";
 import ProductGrid from "@/components/ProductGrid";
 
 const Index = () => {
@@ -12,7 +12,7 @@ const Index = () => {
   return (
     <div className="min-h-screen text-foreground">
       <Hero />
-      <USPSection />
+      <USPFlipCards />
       <ProductGrid />
     </div>
   );

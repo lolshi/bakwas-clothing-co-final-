@@ -76,6 +76,39 @@
   .trippy-border {
     border-image: linear-gradient(45deg, #00E1FF, #8B5CF6, #EC4899, #F97316) 1;
   }
+
+  /* 3D Flip Card Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Text Stroke Effects */
+  .text-stroke-pink {
+    -webkit-text-stroke: 1px #FF00FF;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .text-stroke-green {
+    -webkit-text-stroke: 1px #00FF66;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .text-stroke-blue {
+    -webkit-text-stroke: 1px #00E1FF;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .page-transition {
