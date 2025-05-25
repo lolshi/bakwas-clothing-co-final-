@@ -61,11 +61,13 @@ const Header = () => {
 
         {/* Cart & Auth */}
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-neon-cyan text-xs font-medium text-black flex items-center justify-center">
-              0
-            </span>
+          <Button variant="ghost" size="icon" className="relative" asChild>
+            <Link to="/cart">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-neon-cyan text-xs font-medium text-black flex items-center justify-center">
+                2
+              </span>
+            </Link>
           </Button>
 
           {!loading && (
@@ -137,6 +139,9 @@ const Header = () => {
             </Link>
             <Link to="/shop" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
               Shop
+            </Link>
+            <Link to="/cart" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
+              Cart
             </Link>
             <a href="/collections" className="block text-sm font-medium hover:text-neon-cyan transition-colors">
               Collections
