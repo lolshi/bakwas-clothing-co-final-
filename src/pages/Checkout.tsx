@@ -202,10 +202,27 @@ const Checkout = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <div 
+        className="min-h-screen bg-background relative"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/dd9a56c9-3774-432e-930e-da9a0dbac0f3.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <Header />
         
-        <main className="container mx-auto px-4 py-8 pt-24">
+        {/* Logo */}
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+          <img 
+            src="/lovable-uploads/760a84ab-66f6-4874-ad3a-c72e1cf8a830.png" 
+            alt="Bakwas Clothing Co." 
+            className="h-16 md:h-20 w-auto"
+          />
+        </div>
+        
+        <main className="container mx-auto px-4 py-8 pt-32">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <ProgressBar currentStep="checkout" />
@@ -214,26 +231,32 @@ const Checkout = () => {
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Left Column - Forms */}
               <div className="space-y-6">
-                <CheckoutForm form={form} />
-                <PromoCode 
-                  onApply={handlePromoApply} 
-                  appliedCode={promoCode}
-                  onRemove={handlePromoRemove}
-                />
+                <div className="bg-card/80 backdrop-blur-sm rounded-lg p-6 border border-border">
+                  <CheckoutForm form={form} />
+                </div>
+                <div className="bg-card/80 backdrop-blur-sm rounded-lg p-6 border border-border">
+                  <PromoCode 
+                    onApply={handlePromoApply} 
+                    appliedCode={promoCode}
+                    onRemove={handlePromoRemove}
+                  />
+                </div>
               </div>
 
               {/* Right Column - Order Summary */}
               <div className="lg:sticky lg:top-8 lg:self-start">
-                <OrderSummary
-                  items={cartItems}
-                  subtotal={subtotal}
-                  discount={discount}
-                  shipping={shippingCost}
-                  total={total}
-                  promoCode={promoCode}
-                  onPayment={form.handleSubmit(onSubmit)}
-                  isProcessing={isProcessingPayment}
-                />
+                <div className="bg-card/80 backdrop-blur-sm rounded-lg border border-border">
+                  <OrderSummary
+                    items={cartItems}
+                    subtotal={subtotal}
+                    discount={discount}
+                    shipping={shippingCost}
+                    total={total}
+                    promoCode={promoCode}
+                    onPayment={form.handleSubmit(onSubmit)}
+                    isProcessing={isProcessingPayment}
+                  />
+                </div>
               </div>
             </div>
           </div>

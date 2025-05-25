@@ -21,10 +21,27 @@ const Wishlist = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div 
+      className="min-h-screen bg-background text-foreground relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/dd9a56c9-3774-432e-930e-da9a0dbac0f3.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Header />
       
-      <div className="container mx-auto px-4 py-24">
+      {/* Logo */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+        <img 
+          src="/lovable-uploads/760a84ab-66f6-4874-ad3a-c72e1cf8a830.png" 
+          alt="Bakwas Clothing Co." 
+          className="h-16 md:h-20 w-auto"
+        />
+      </div>
+      
+      <div className="container mx-auto px-4 py-24 pt-32">
         {/* Breadcrumbs */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -66,7 +83,7 @@ const Wishlist = () => {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="group relative bg-card rounded-lg overflow-hidden border border-border hover:border-neon-cyan/50 transition-all duration-300 animate-fade-in"
+                className="group relative bg-card/80 backdrop-blur-sm rounded-lg overflow-hidden border border-border hover:border-neon-cyan/50 transition-all duration-300 animate-fade-in"
               >
                 <div className="aspect-square overflow-hidden">
                   <img

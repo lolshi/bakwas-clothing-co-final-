@@ -45,9 +45,26 @@ const Shop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div 
+      className="min-h-screen bg-background text-foreground relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/dd9a56c9-3774-432e-930e-da9a0dbac0f3.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Logo */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+        <img 
+          src="/lovable-uploads/2c6d9788-8753-4221-8998-32f4357a72df.png" 
+          alt="Bakwas Clothing Co." 
+          className="h-16 md:h-20 w-auto"
+        />
+      </div>
+
       {/* Breadcrumbs */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pt-32">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>

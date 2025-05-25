@@ -99,10 +99,27 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/dd9a56c9-3774-432e-930e-da9a0dbac0f3.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Header />
       
-      <main className="container mx-auto px-4 py-8 pt-24">
+      {/* Logo */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+        <img 
+          src="/lovable-uploads/760a84ab-66f6-4874-ad3a-c72e1cf8a830.png" 
+          alt="Bakwas Clothing Co." 
+          className="h-16 md:h-20 w-auto"
+        />
+      </div>
+      
+      <main className="container mx-auto px-4 py-8 pt-32">
         {/* Breadcrumbs */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -147,7 +164,7 @@ const Cart = () => {
             {/* Items List */}
             <div className="lg:col-span-2 space-y-6">
               {cartItems.map((item) => (
-                <Card key={item.id} className="bg-card border-border">
+                <Card key={item.id} className="bg-card/80 backdrop-blur-sm border-border">
                   <CardContent className="p-6">
                     <div className="flex gap-4">
                       <img
@@ -230,7 +247,7 @@ const Cart = () => {
 
             {/* Order Summary */}
             <div className="lg:sticky lg:top-8 lg:self-start">
-              <Card className="bg-card border-border shadow-2xl">
+              <Card className="bg-card/80 backdrop-blur-sm border-border shadow-2xl">
                 <CardHeader>
                   <CardTitle className="text-xl font-anton text-neon-cyan">
                     Order Summary
