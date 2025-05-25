@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,13 +14,53 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
+  const confirmMessage = searchParams.get('message');
+
+  useEffect(() => {
+    if (confirmMessage === 'confirm_email') {
+      toast({
+        title: "Email Confirmation Required",
+        description: "Thank you for signing up! Please check your email to confirm your account.",
+        duration: 5000,
+      });
+    }
+  }, [confirmMessage, toast]);
+
+  const validateForm = () => {
+    let isValid = true;
+    setEmailError('');
+    setPasswordError('');
+
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email');
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     const { error } = await signIn(email, password);
@@ -32,131 +72,112 @@ const Login = () => {
         variant: "destructive",
       });
     } else {
-      const redirectTo = searchParams.get('next') || '/';
+      const redirectTo = searchParams.get('next') || '/account';
       navigate(redirectTo);
     }
 
     setIsLoading(false);
   };
 
-  const handleDemoLogin = () => {
-    setEmail('demo@example.com');
-    setPassword('password');
-  };
-
-  const isFormValid = email.length > 0 && password.length > 0;
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="bg-card/90 backdrop-blur-sm border-border shadow-xl animate-in fade-in duration-300">
-          <CardHeader className="text-center">
-            <img 
-              src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
-              alt="Bakwas Clothing Co." 
-              className="h-12 w-auto mx-auto mb-4"
-            />
-            <CardTitle className="text-2xl font-anton bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
-              Welcome Back
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Demo Credentials Banner */}
-            <div className="mb-6 p-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
-              <h4 className="font-anton text-neon-cyan mb-2">Demo Login</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Use these credentials to test the website:
-              </p>
-              <div className="text-sm font-mono bg-black/20 p-2 rounded">
-                <div>Email: demo@example.com</div>
-                <div>Password: password</div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-3 w-full border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black"
-                onClick={handleDemoLogin}
-              >
-                Use Demo Credentials
-              </Button>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+      {/* Logo */}
+      <img 
+        src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
+        alt="Bakwas Clothing Co." 
+        className="w-40 h-auto mb-4"
+      />
+
+      {/* Confirmation Banner */}
+      {confirmMessage === 'confirm_email' && (
+        <div className="w-full max-w-md mb-4 p-4 bg-blue-600 text-white rounded-lg text-center">
+          Thank you for signing up! Please check your email to confirm your account.
+        </div>
+      )}
+
+      <Card className="w-full max-w-md bg-gray-800 shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-white mb-4">
+            Welcome Back
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-white">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 mb-2 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-400 border-none"
+                placeholder="Email"
+                required
+              />
+              {emailError && <p className="text-red-400 text-sm">{emailError}</p>}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+            <div>
+              <Label htmlFor="password" className="text-white">Password</Label>
+              <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border-transparent focus:border-neon-cyan transition-colors"
-                  placeholder="Enter your email"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-3 pr-10 mb-2 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-400 border-none"
+                  placeholder="Password"
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 pr-10 border-transparent focus:border-neon-cyan transition-colors"
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-neon-cyan hover:text-neon-purple transition-colors"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:text-white"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  Forgot Password?
-                </Link>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
+              {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
+            </div>
 
-              <Button
-                type="submit"
-                disabled={!isFormValid || isLoading}
-                className="w-full py-3 bg-neon-cyan text-black hover:bg-neon-cyan/80 transition-colors disabled:opacity-50"
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-blue-400 underline hover:text-blue-300 text-sm"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  'Login'
-                )}
-              </Button>
+                Forgot Password?
+              </Link>
+            </div>
 
-              <div className="text-center">
-                <span className="text-muted-foreground">New here? </span>
-                <Link
-                  to="/signup"
-                  className="text-neon-cyan hover:text-neon-purple transition-colors font-medium"
-                >
-                  Sign up
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-blue-400 hover:bg-blue-500 text-black font-semibold rounded-lg transition"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                'Login'
+              )}
+            </Button>
+
+            <div className="text-center mt-4">
+              <span className="text-gray-400">New here? </span>
+              <Link
+                to="/signup"
+                className="text-blue-400 underline hover:text-blue-300"
+              >
+                Sign up
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

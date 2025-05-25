@@ -15,12 +15,50 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [fullNameError, setFullNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const validateForm = () => {
+    let isValid = true;
+    setFullNameError('');
+    setEmailError('');
+    setPasswordError('');
+
+    if (!fullName.trim()) {
+      setFullNameError('Full name is required');
+      isValid = false;
+    }
+
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Please enter a valid email');
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     const { error } = await signUp(email, password, fullName);
@@ -32,108 +70,110 @@ const Signup = () => {
         variant: "destructive",
       });
     } else {
-      toast({
-        title: "Account Created",
-        description: "Welcome to Bakwas Clothing Co.!",
-      });
-      navigate('/');
+      navigate('/login?message=confirm_email');
     }
 
     setIsLoading(false);
   };
 
-  const isFormValid = fullName.length > 0 && email.length > 0 && password.length >= 6;
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="bg-card border-border shadow-xl animate-in fade-in duration-300">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-anton bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
-              Create Your Account
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+      {/* Logo */}
+      <img 
+        src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
+        alt="Bakwas Clothing Co." 
+        className="w-40 h-auto mb-4"
+      />
+
+      <Card className="w-full max-w-md bg-gray-800 shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-white mb-4">
+            Create Your Account
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="fullName" className="text-white">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full p-3 mb-2 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-400 border-none"
+                placeholder="Full Name"
+                required
+              />
+              {fullNameError && <p className="text-red-400 text-sm">{fullNameError}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="text-white">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 mb-2 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-400 border-none"
+                placeholder="Email"
+                required
+              />
+              {emailError && <p className="text-red-400 text-sm">{emailError}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-white">Password</Label>
+              <div className="relative">
                 <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full p-3 border-transparent focus:border-neon-cyan transition-colors"
-                  placeholder="Enter your full name"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-3 pr-10 mb-2 bg-gray-700 text-white rounded focus:ring-2 focus:ring-blue-400 border-none"
+                  placeholder="Password (min 6 characters)"
                   required
+                  minLength={6}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border-transparent focus:border-neon-cyan transition-colors"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 pr-10 border-transparent focus:border-neon-cyan transition-colors"
-                    placeholder="Enter your password (min 6 characters)"
-                    required
-                    minLength={6}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={!isFormValid || isLoading}
-                className="w-full py-3 bg-neon-cyan text-black hover:bg-neon-cyan/80 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  'Sign Up'
-                )}
-              </Button>
-
-              <div className="text-center">
-                <span className="text-muted-foreground">Already have an account? </span>
-                <Link
-                  to="/login"
-                  className="text-neon-cyan hover:text-neon-purple transition-colors font-medium"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:text-white"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  Login
-                </Link>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              {passwordError && <p className="text-red-400 text-sm">{passwordError}</p>}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-blue-400 hover:bg-blue-500 text-black font-semibold rounded-lg transition"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
+
+            <div className="text-center mt-4">
+              <span className="text-gray-400">Already have an account? </span>
+              <Link
+                to="/login"
+                className="text-blue-400 underline hover:text-blue-300"
+              >
+                Login
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -14,6 +14,7 @@ import Shop from "./pages/Shop";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import Checkout from "./pages/Checkout";
 import Help from "./pages/Help";
 import Contact from "./pages/Contact";
@@ -63,6 +64,7 @@ const App = () => (
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/checkout" element={<Checkout />} />
                     
                     {/* New Content Pages */}
