@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import MultiImageUpload from './MultiImageUpload';
 
 interface Product {
   id: string;
@@ -142,13 +143,13 @@ const ProductForm = ({ isOpen, onClose, editingProduct, onProductSaved, categori
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editingProduct ? 'Edit Product' : 'Add New Product'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Product Name</Label>
@@ -212,6 +213,12 @@ const ProductForm = ({ isOpen, onClose, editingProduct, onProductSaved, categori
               placeholder="streetwear, graphic, limited"
             />
           </div>
+
+          <MultiImageUpload
+            images={formData.images}
+            onImagesChange={(images) => setFormData({ ...formData, images })}
+            productId={editingProduct?.id}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">

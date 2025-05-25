@@ -27,7 +27,7 @@ const ProductGrid = () => {
         .select('id, name, price, images, is_featured')
         .eq('is_featured', true)
         .eq('is_active', true)
-        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(6);
 
       if (error) throw error;

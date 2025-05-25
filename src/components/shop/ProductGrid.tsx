@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, ShoppingCart } from 'lucide-react';
 import { FilterState, Product } from '@/pages/Shop';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProductGridProps {
   filters: FilterState;
@@ -86,58 +87,90 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
   const itemsPerPage = 8;
 
   useEffect(() => {
-    // Simulate loading
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
     setLoading(true);
-    setTimeout(() => {
-      let filteredProducts = [...mockProducts];
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-      // Apply category filter
-      if (filters.categories.length > 0) {
-        filteredProducts = filteredProducts.filter(product =>
-          filters.categories.includes(product.category)
-        );
-      }
+      if (error) throw error;
 
-      // Apply size filter
-      if (filters.sizes.length > 0) {
-        filteredProducts = filteredProducts.filter(product =>
-          product.sizes.some(size => filters.sizes.includes(size))
-        );
-      }
+      // Transform Supabase data to match our Product interface
+      const transformedProducts: Product[] = (data || []).map(product => ({
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        image: product.images?.[0] || '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png',
+        category: product.category_ids?.[0] || 'general',
+        sizes: ['S', 'M', 'L', 'XL'], // Default sizes - you may want to add a sizes field to products table
+        colors: [product.color || 'black'],
+        description: product.description || '',
+        images: product.images || ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png']
+      }));
 
-      // Apply color filter
-      if (filters.colors.length > 0) {
-        filteredProducts = filteredProducts.filter(product =>
-          product.colors.some(color => filters.colors.includes(color))
-        );
-      }
-
-      // Apply price filter
-      filteredProducts = filteredProducts.filter(product =>
-        product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
-      );
-
-      // Apply sorting
-      switch (filters.sortBy) {
-        case 'price-low':
-          filteredProducts.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-high':
-          filteredProducts.sort((a, b) => b.price - a.price);
-          break;
-        case 'best-selling':
-          // Mock best selling logic
-          filteredProducts.sort(() => Math.random() - 0.5);
-          break;
-        case 'newest':
-        default:
-          // Keep original order for newest
-          break;
-      }
-
-      setProducts(filteredProducts);
+      setProducts(transformedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  };
+
+  useEffect(() => {
+    // Apply filters
+    let filteredProducts = products;
+
+    // Apply category filter
+    if (filters.categories.length > 0) {
+      filteredProducts = filteredProducts.filter(product =>
+        filters.categories.includes(product.category)
+      );
+    }
+
+    // Apply size filter
+    if (filters.sizes.length > 0) {
+      filteredProducts = filteredProducts.filter(product =>
+        product.sizes.some(size => filters.sizes.includes(size))
+      );
+    }
+
+    // Apply color filter
+    if (filters.colors.length > 0) {
+      filteredProducts = filteredProducts.filter(product =>
+        product.colors.some(color => filters.colors.includes(color))
+      );
+    }
+
+    // Apply price filter
+    filteredProducts = filteredProducts.filter(product =>
+      product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
+    );
+
+    // Apply sorting
+    switch (filters.sortBy) {
+      case 'price-low':
+        filteredProducts.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        filteredProducts.sort((a, b) => b.price - a.price);
+        break;
+      case 'best-selling':
+        // Mock best selling logic
+        filteredProducts.sort(() => Math.random() - 0.5);
+        break;
+      case 'newest':
+      default:
+        // Keep original order for newest
+        break;
+    }
+
+    setProducts(filteredProducts);
   }, [filters]);
 
   const handleAddToCart = (product: Product) => {
