@@ -4,7 +4,18 @@ import { ArrowRight } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden psychedelic-bg">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Hero Banner Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('/lovable-uploads/f28f3d2a-8930-4520-9cc7-8de233beae5c.png')`
+        }}
+      />
+      
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/20"></div>
+
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-20 w-32 h-32 border border-neon-cyan rounded-full animate-float"></div>
@@ -14,13 +25,6 @@ const Hero = () => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-anton mb-6 neon-glow animate-psychedelic-pulse">
-          BAKWAS
-        </h1>
-        <p className="text-xl md:text-2xl lg:text-3xl font-anton mb-4 text-muted-foreground">
-          CLOTHING CO.
-        </p>
-        
         <div className="mb-8 space-y-4">
           <p className="text-lg md:text-xl font-space font-medium text-foreground/90">
             Bakwas isn't just a name. It's an attitude.
