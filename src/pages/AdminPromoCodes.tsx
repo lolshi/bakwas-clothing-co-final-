@@ -152,7 +152,7 @@ const AdminPromoCodes = () => {
                   </thead>
                   <tbody>
                     {promoCodes?.map((promoCode) => (
-                      <tr key={promoCode.id} className="border-b hover:bg-gray-50">
+                      <tr key={promoCode.id} className="border-b hover:bg-gray-700 hover:text-blue-400 transition-colors">
                         <td className="p-4">
                           <span className="font-mono font-bold">{promoCode.code}</span>
                         </td>

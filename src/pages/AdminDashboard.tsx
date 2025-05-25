@@ -6,9 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { CalendarDays, DollarSign, Package, ShoppingCart, Search, Eye } from 'lucide-react';
+import { CalendarDays, DollarSign, Package, ShoppingCart, Search, Eye, CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Order {
   id: string;
@@ -38,24 +41,49 @@ const AdminDashboard = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fromDate, setFromDate] = useState<Date>();
+  const [toDate, setToDate] = useState<Date>();
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fromDate, toDate]);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch orders
-      const { data: ordersData } = await supabase
+      // Build query for orders with date filtering
+      let ordersQuery = supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Fetch stats
-      const { data: allOrders } = await supabase
+      if (fromDate) {
+        ordersQuery = ordersQuery.gte('created_at', fromDate.toISOString());
+      }
+      if (toDate) {
+        // Set to end of day for toDate
+        const endOfDay = new Date(toDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        ordersQuery = ordersQuery.lte('created_at', endOfDay.toISOString());
+      }
+
+      const { data: ordersData } = await ordersQuery;
+
+      // Build query for stats with date filtering
+      let allOrdersQuery = supabase
         .from('orders')
         .select('total_amount, status');
+
+      if (fromDate) {
+        allOrdersQuery = allOrdersQuery.gte('created_at', fromDate.toISOString());
+      }
+      if (toDate) {
+        const endOfDay = new Date(toDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        allOrdersQuery = allOrdersQuery.lte('created_at', endOfDay.toISOString());
+      }
+
+      const { data: allOrders } = await allOrdersQuery;
 
       const { data: products } = await supabase
         .from('products')
@@ -155,7 +183,78 @@ const AdminDashboard = () => {
             <CardDescription className="text-gray-600">
               Latest orders from your customers
             </CardDescription>
-            <div className="flex items-center space-x-2">
+            
+            {/* Date Filter Controls */}
+            <div className="flex items-center space-x-4 pt-4">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">From:</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal",
+                        !fromDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {fromDate ? format(fromDate, "MMM dd, yyyy") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={fromDate}
+                      onSelect={setFromDate}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">To:</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal",
+                        !toDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {toDate ? format(toDate, "MMM dd, yyyy") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={toDate}
+                      onSelect={setToDate}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {(fromDate || toDate) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFromDate(undefined);
+                    setToDate(undefined);
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2 pt-2">
               <Search className="h-4 w-4 text-gray-600" />
               <Input
                 placeholder="Search orders..."
