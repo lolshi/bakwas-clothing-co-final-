@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['@radix-ui/react-toast', '@radix-ui/react-dialog', '@radix-ui/react-tooltip'],
-          animation: ['framer-motion', 'react-spring', '@react-spring/web']
+          animation: ['framer-motion', '@react-spring/web']
         }
       }
     }
@@ -53,7 +53,6 @@ export default defineConfig(({ mode }) => ({
       '@radix-ui/react-dialog',
       '@radix-ui/react-tooltip',
       'framer-motion',
-      'react-spring',
       '@react-spring/web',
       '@use-gesture/react',
       'lucide-react',
