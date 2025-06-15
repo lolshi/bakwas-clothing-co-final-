@@ -10,9 +10,18 @@ export interface WishlistItem {
   category: string;
 }
 
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  image?: string;
+  images?: string[];
+  category: string;
+}
+
 interface WishlistContextType {
   items: WishlistItem[];
-  addToWishlist: (product: any) => void;
+  addToWishlist: (product: Product) => void;
   removeFromWishlist: (id: string) => void;
   isInWishlist: (id: string) => boolean;
   clearWishlist: () => void;
@@ -52,7 +61,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('bakwas-wishlist', JSON.stringify(items));
   }, [items]);
 
-  const addToWishlist = (product: any) => {
+  const addToWishlist = (product: Product) => {
     const wishlistItem: WishlistItem = {
       id: product.id,
       title: product.title,

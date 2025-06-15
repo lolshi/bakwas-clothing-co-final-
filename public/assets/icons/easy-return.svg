@@ -1,0 +1,38 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield shape -->
+  <path d="M24 4L8 12V24C8 32 16 40 24 44C32 40 40 32 40 24V12L24 4Z" fill="#1a1a2e" stroke="#00ff88" stroke-width="2"/>
+  
+  <!-- Return arrow circle -->
+  <circle cx="24" cy="24" r="12" fill="none" stroke="#00ff88" stroke-width="2"/>
+  
+  <!-- Return arrow -->
+  <path d="M18 20C18 20 20 18 24 18C28 18 30 20 30 24C30 28 28 30 24 30C22 30 20 29 19 27" stroke="#00ff88" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Arrow head -->
+  <path d="M16 24L19 21L19 27Z" fill="#00ff88"/>
+  
+  <!-- Shield details -->
+  <path d="M12 16L24 8L36 16" stroke="#00ff88" stroke-width="1" opacity="0.6"/>
+  <path d="M14 20L24 12L34 20" stroke="#00ff88" stroke-width="1" opacity="0.4"/>
+  
+  <!-- 30-day guarantee -->
+  <text x="24" y="38" text-anchor="middle" fill="#00ff88" font-size="6" font-weight="bold">30</text>
+  
+  <!-- Checkmark accent -->
+  <path d="M20 14L22 16L28 10" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Glow effect -->
+  <defs>
+    <filter id="returnGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#returnGlow)">
+    <path d="M24 4L8 12V24C8 32 16 40 24 44C32 40 40 32 40 24V12L24 4Z" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.6"/>
+    <circle cx="24" cy="24" r="12" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.8"/>
+  </g>
+</svg> 

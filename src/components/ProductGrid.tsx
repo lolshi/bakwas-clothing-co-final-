@@ -1,17 +1,18 @@
-
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
+import FeaturedCoverflow from "./FeaturedCoverflow";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   images: string[] | null;
-  is_featured: boolean;
+  is_featured?: boolean;
+  description?: string;
+  category?: string;
 }
 
 const ProductGrid = () => {
@@ -19,6 +20,14 @@ const ProductGrid = () => {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -26,16 +35,29 @@ const ProductGrid = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, price, images, is_featured')
+        .select('id, name, price, images, is_featured, description')
         .eq('is_featured', true)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(6);
+        .limit(8);
 
-      if (error) throw error;
-      setFeaturedProducts(data || []);
+      if (error) {
+        console.error('Error fetching featured products:', error);
+        return;
+      }
+
+      // Transform the data to match our Product interface
+      const transformedProducts: Product[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        images: item.images,
+        is_featured: item.is_featured || false,
+        description: item.description || undefined
+      }));
+
+      setFeaturedProducts(transformedProducts);
     } catch (error) {
       console.error('Error fetching featured products:', error);
     } finally {
@@ -72,15 +94,12 @@ const ProductGrid = () => {
 
   if (loading) {
     return (
-      <section className="py-20 bg-black/30 backdrop-blur-sm">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
-              🔥 HOT RIGHT NOW
-            </h2>
-            <p className="text-lg font-space text-muted-foreground">
-              Loading featured products...
-            </p>
+      <section ref={sectionRef} className="py-24 relative overflow-hidden">
+        <div className="container relative z-20">
+          <div className="text-center">
+            <div className="text-4xl md:text-6xl font-anton uppercase text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-orange">
+              Loading...
+            </div>
           </div>
         </div>
       </section>
@@ -89,15 +108,12 @@ const ProductGrid = () => {
 
   if (featuredProducts.length === 0) {
     return (
-      <section className="py-20 bg-black/30 backdrop-blur-sm">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
-              🔥 HOT RIGHT NOW
-            </h2>
-            <p className="text-lg font-space text-muted-foreground">
-              No featured products available at the moment
-            </p>
+      <section ref={sectionRef} className="py-24 relative overflow-hidden">
+        <div className="container relative z-20">
+          <div className="text-center">
+            <div className="text-4xl md:text-6xl font-anton uppercase text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-orange">
+              No featured products available
+            </div>
           </div>
         </div>
       </section>
@@ -105,80 +121,13 @@ const ProductGrid = () => {
   }
 
   return (
-    <section className="py-20 bg-black/30 backdrop-blur-sm">
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-anton mb-4 neon-glow">
-            🔥 HOT RIGHT NOW
-          </h2>
-          <p className="text-lg font-space text-muted-foreground">
-            Fresh drops that are setting the streets on fire
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredProducts.map((product) => (
-            <div 
-              key={product.id}
-              className="group relative bg-black/40 rounded-2xl overflow-hidden border border-border/50 hover:border-neon-cyan/50 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
-            >
-              <div className="absolute top-4 left-4 z-10 bg-neon-cyan text-black px-3 py-1 rounded-full text-xs font-space font-bold">
-                🔥 HOT
-              </div>
-
-              <div className="aspect-square overflow-hidden">
-                <img 
-                  src={product.images?.[0] || "/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png"}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-lg font-space font-semibold mb-2 group-hover:text-neon-cyan transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-2xl font-anton text-neon-cyan mb-4">
-                  ₹{product.price.toLocaleString()}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <Button 
-                    className="flex-1 mr-2 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-space font-semibold transition-all transform hover:scale-105"
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className={`${
-                      isInWishlist(product.id) 
-                        ? 'border-neon-pink bg-neon-pink/10 text-neon-pink hover:bg-neon-pink/20' 
-                        : 'border-neon-cyan/20 hover:bg-neon-cyan/10 hover:border-neon-pink hover:text-neon-pink'
-                    } transition-all transform hover:scale-110`}
-                    onClick={() => handleWishlistToggle(product)}
-                  >
-                    <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black font-space font-semibold"
-          >
-            View All Products
-          </Button>
-        </div>
-      </div>
-    </section>
+    <FeaturedCoverflow
+      products={featuredProducts}
+      onAddToCart={handleAddToCart}
+      onWishlistToggle={handleWishlistToggle}
+      isInWishlist={isInWishlist}
+      title="HOT RIGHT NOW"
+    />
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -90,9 +89,6 @@ const AdminLogin = () => {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-sm text-gray-600 text-center">
-            Demo credentials: admin@bakwas.com / admin123
-          </div>
         </CardContent>
       </Card>
     </div>

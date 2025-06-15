@@ -1,18 +1,16 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useWishlist } from '@/contexts/WishlistContext';
+import { useWishlist, WishlistItem } from '@/contexts/WishlistContext';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ShoppingCart, Trash2, Heart } from 'lucide-react';
-import Header from '@/components/Header';
 
 const Wishlist = () => {
   const { items, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  const handleAddToCart = (item: any) => {
+  const handleAddToCart = (item: WishlistItem) => {
     addToCart(item);
   };
 
@@ -30,18 +28,7 @@ const Wishlist = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <Header />
-      
-      {/* Logo */}
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
-        <img 
-          src="/lovable-uploads/760a84ab-66f6-4874-ad3a-c72e1cf8a830.png" 
-          alt="Bakwas Clothing Co." 
-          className="h-16 md:h-20 w-auto"
-        />
-      </div>
-      
-      <div className="container mx-auto px-4 py-24 pt-32">
+      <div className="container mx-auto px-4 py-8">
         {/* Breadcrumbs */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>

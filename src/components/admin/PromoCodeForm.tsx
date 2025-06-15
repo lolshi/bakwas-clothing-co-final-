@@ -100,7 +100,7 @@ const PromoCodeForm: React.FC<PromoCodeFormProps> = ({ promoCode, onClose, onSuc
       });
       onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message || "Failed to save promo code.",

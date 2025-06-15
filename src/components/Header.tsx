@@ -1,172 +1,118 @@
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart, User, Heart } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Home, ShoppingBag, MessageCircle, User, Sparkles, Bot, ClipboardList } from "lucide-react";
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/contexts/CartContext';
+import { motion } from "framer-motion";
+
+import { HeaderLogo } from "./layout/HeaderLogo";
+import { HeaderSocials } from "./layout/HeaderSocials";
+import { HeaderActions } from "./layout/HeaderActions";
+import { HeaderNavLinks } from "./layout/HeaderNavLinks";
+import { MobileMenu } from "./layout/MobileMenu";
+
+export interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ComponentType<any>;
+  exact?: boolean;
+  isAI?: boolean;
+}
+
+const mainNavItems: NavItem[] = [
+  { to: "/", label: "Home", icon: Home, exact: true },
+  { to: "/shop", label: "Shop", icon: ShoppingBag },
+  { 
+    to: "/help", 
+    label: "bakwAIs beta", 
+    icon: Bot,
+    isAI: true 
+  },
+  { to: "/contact", label: "Contact", icon: MessageCircle },
+  { to: "/account", label: "Account", icon: User },
+  { to: "/orders", label: "Orders", icon: ClipboardList },
+];
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user } = useAuth();
-  const { itemCount } = useCart();
   const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  return (
-    <header className="sticky top-0 z-20 bg-gray-900/90 backdrop-blur-md border-b border-gray-700">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img 
-              src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
-              alt="Bakwas Clothing Co." 
-              className="h-12 md:h-16 w-auto"
-            />
-          </Link>
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className={`font-space transition-colors ${
-                location.pathname === '/' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-              }`}
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  const isActive = (item: NavItem) => {
+    return item.exact 
+      ? location.pathname === item.to 
+      : location.pathname.startsWith(item.to) && location.pathname !== '/';
+  };
+
+  return (
+    <header 
+      className={`footer sticky top-0 z-50 transition-all duration-300 ease-in-out border-b ${
+        isScrolled || isMenuOpen 
+          ? 'border-gray-700/50 shadow-2xl' 
+          : 'border-transparent'
+      }`}
+    >
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="flex items-center justify-between h-20 md:h-24">
+          {/* Left Side - Logo */}
+          <div className="flex items-center flex-shrink-0">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              Home
-            </Link>
-            <Link 
-              to="/shop" 
-              className={`font-space transition-colors ${
-                location.pathname === '/shop' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-              }`}
-            >
-              Shop
-            </Link>
-            <Link 
-              to="/help" 
-              className={`font-space transition-colors ${
-                location.pathname === '/help' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-              }`}
-            >
-              Help
-            </Link>
-            <Link 
-              to="/contact" 
-              className={`font-space transition-colors ${
-                location.pathname === '/contact' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-              }`}
-            >
-              Contact
-            </Link>
+              <HeaderLogo imgClassName="h-14 md:h-16 lg:h-20 w-auto drop-shadow-lg" />
+            </motion.div>
+          </div>
+
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden lg:flex items-center justify-center flex-1">
+            <HeaderNavLinks navItems={mainNavItems} />
           </nav>
 
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Account Link - only show if user is logged in */}
-            {user && (
-              <Link to="/account">
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                  <User className="h-4 w-4 mr-2" />
-                  Account
-                </Button>
-              </Link>
-            )}
-            <Link to="/wishlist">
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                <Heart className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/cart">
-              <Button variant="ghost" size="sm" className="relative text-gray-300 hover:text-neon-cyan">
-                <ShoppingCart className="h-4 w-4" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                    {itemCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <Button variant="ghost" size="sm" className="md:hidden text-white" onClick={toggleMenu}>
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-700">
-            <div className="flex flex-col space-y-4">
-              <Link 
-                to="/" 
-                className={`font-space transition-colors ${
-                  location.pathname === '/' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-                }`}
-                onClick={toggleMenu}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/shop" 
-                className={`font-space transition-colors ${
-                  location.pathname === '/shop' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-                }`}
-                onClick={toggleMenu}
-              >
-                Shop
-              </Link>
-              <Link 
-                to="/help" 
-                className={`font-space transition-colors ${
-                  location.pathname === '/help' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-                }`}
-                onClick={toggleMenu}
-              >
-                Help
-              </Link>
-              <Link 
-                to="/contact" 
-                className={`font-space transition-colors ${
-                  location.pathname === '/contact' ? 'text-neon-cyan' : 'text-white hover:text-neon-cyan'
-                }`}
-                onClick={toggleMenu}
-              >
-                Contact
-              </Link>
-              
-              <div className="flex items-center space-x-4 pt-4 border-t border-gray-700">
-                {user && (
-                  <Link to="/account" onClick={toggleMenu}>
-                    <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                      <User className="h-4 w-4 mr-2" />
-                      Account
-                    </Button>
-                  </Link>
-                )}
-                <Link to="/wishlist" onClick={toggleMenu}>
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-neon-cyan">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link to="/cart" onClick={toggleMenu}>
-                  <Button variant="ghost" size="sm" className="relative text-gray-300 hover:text-neon-cyan">
-                    <ShoppingCart className="h-4 w-4" />
-                    {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-neon-cyan text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                        {itemCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              </div>
+          {/* Right Side - Actions & Social */}
+          <div className="flex items-center space-x-4">
+            <HeaderActions />
+            <div className="hidden lg:flex">
+              <HeaderSocials iconClassName="h-5 w-5" />
             </div>
+            
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition-colors"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      <MobileMenu
+        isOpen={isMenuOpen}
+        toggleMenu={toggleMenu}
+        navItems={mainNavItems}
+      />
     </header>
   );
 };

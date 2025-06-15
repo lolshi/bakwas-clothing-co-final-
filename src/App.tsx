@@ -1,4 +1,5 @@
-
+import '@/styles/globals.css';
+import '@/styles/scrollbar.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +22,6 @@ import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import ReturnsPolicy from "./pages/ReturnsPolicy";
 import OrderHistory from "./pages/OrderHistory";
-import ReturnRequest from "./pages/ReturnRequest";
 import FAQs from "./pages/FAQs";
 import MyAccount from "./pages/MyAccount";
 import Company from "./pages/Company";
@@ -40,7 +40,22 @@ import AdminPromoCodes from "./pages/AdminPromoCodes";
 import AdminContent from "./pages/AdminContent";
 import AdminBlog from "./pages/AdminBlog";
 import AdminPaymentSettings from "./pages/AdminPaymentSettings";
+import AdminCreateOrder from "./pages/AdminCreateOrder";
+import AdminContactMessages from "./pages/AdminContactMessages";
+import CardVariantsDemo from "./pages/CardVariantsDemo";
 import NotFound from "./pages/NotFound";
+import OrderSuccess from "./pages/OrderSuccess";
+import TrackOrder from "./pages/TrackOrder";
+import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
+import AdminSetup from "./pages/AdminSetup";
+import ReturnRequest from "./pages/ReturnRequest";
+import AdminReturns from "./pages/AdminReturns";
+import AdminWallets from "./pages/AdminWallets";
+import FilterTest from './pages/FilterTest';
+import MobileProductViewTest from './pages/MobileProductViewTest';
+import MobileProductDetailTest from './pages/MobileProductDetailTest';
+import MobileProductDetailTestEnhanced from './pages/MobileProductDetailTestEnhanced';
+import ShopTest from "./pages/ShopTest";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,7 +89,7 @@ const App = () => (
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/returns-policy" element={<ReturnsPolicy />} />
                       <Route path="/order-history" element={<OrderHistory />} />
-                      <Route path="/return-request" element={<ReturnRequest />} />
+                      <Route path="/orders" element={<OrderHistory />} />
                       <Route path="/faqs" element={<FAQs />} />
                       <Route path="/account" element={<MyAccount />} />
                       <Route path="/company" element={<Company />} />
@@ -84,6 +99,17 @@ const App = () => (
                       <Route path="/blogs" element={<Blogs />} />
                       <Route path="/blogs/:slug" element={<BlogDetail />} />
                       <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/card-variants-demo" element={<CardVariantsDemo />} />
+                      <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+                      <Route path="/track-order/:orderNumber" element={<TrackOrder />} />
+                      <Route path="/db-test" element={<SupabaseConnectionTest />} />
+                      <Route path="/admin-setup" element={<AdminSetup />} />
+                      <Route path="/return-request/:orderId" element={<ReturnRequest />} />
+                      <Route path="/filter-test" element={<FilterTest />} />
+                      <Route path="/mobile-product-view-test" element={<MobileProductViewTest />} />
+                      <Route path="/mobile-product-detail-test/:productId" element={<MobileProductDetailTest />} />
+                      <Route path="/mobile-product-detail-test-enhanced/:productId" element={<MobileProductDetailTestEnhanced />} />
+                      <Route path="/ShopTest" element={<ShopTest />} />
                     </Route>
                     
                     {/* Admin Routes - separate from GlobalLayout */}
@@ -101,6 +127,16 @@ const App = () => (
                     <Route path="/admin/orders" element={
                       <ProtectedAdminRoute>
                         <AdminOrders />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/returns" element={
+                      <ProtectedAdminRoute>
+                        <AdminReturns />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/create-order" element={
+                      <ProtectedAdminRoute>
+                        <AdminCreateOrder />
                       </ProtectedAdminRoute>
                     } />
                     <Route path="/admin/homepage" element={
@@ -126,6 +162,16 @@ const App = () => (
                     <Route path="/admin/payments" element={
                       <ProtectedAdminRoute>
                         <AdminPaymentSettings />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/contact-messages" element={
+                      <ProtectedAdminRoute>
+                        <AdminContactMessages />
+                      </ProtectedAdminRoute>
+                    } />
+                    <Route path="/admin/wallets" element={
+                      <ProtectedAdminRoute>
+                        <AdminWallets />
                       </ProtectedAdminRoute>
                     } />
                     

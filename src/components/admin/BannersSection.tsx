@@ -1,20 +1,26 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, Video, Image as ImageIcon, Eye } from 'lucide-react';
 
 interface Banner {
   id: string;
   title: string | null;
   subtitle: string | null;
   image_url: string;
+  mobile_image_url: string | null;
+  video_url: string | null;
+  mobile_video_url: string | null;
   link_url: string | null;
   is_active: boolean;
   sort_order: number;
+  media_type: 'image' | 'video';
+  show_title: boolean;
+  show_subtitle: boolean;
+  device_targeting: 'all' | 'desktop' | 'mobile' | 'tablet';
 }
 
 interface BannersSectionProps {
@@ -23,6 +29,7 @@ interface BannersSectionProps {
   onEditBanner: (banner: Banner) => void;
   onToggleBannerStatus: (bannerId: string, isActive: boolean) => void;
   onDeleteBanner: (bannerId: string) => void;
+  onPreviewBanner?: (banner: Banner) => void;
 }
 
 const BannersSection: React.FC<BannersSectionProps> = ({
@@ -30,7 +37,8 @@ const BannersSection: React.FC<BannersSectionProps> = ({
   onAddBanner,
   onEditBanner,
   onToggleBannerStatus,
-  onDeleteBanner
+  onDeleteBanner,
+  onPreviewBanner
 }) => {
   return (
     <Card>
@@ -57,7 +65,7 @@ const BannersSection: React.FC<BannersSectionProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">Order</TableHead>
-                <TableHead>Image</TableHead>
+                <TableHead>Media</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Subtitle</TableHead>
                 <TableHead>Link</TableHead>
@@ -75,13 +83,65 @@ const BannersSection: React.FC<BannersSectionProps> = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <img
-                      src={banner.image_url}
-                      alt={banner.title || 'Banner'}
-                      className="w-16 h-10 object-cover rounded"
-                    />
+                    <div className="relative w-16 h-10 rounded overflow-hidden group cursor-pointer"
+                         onClick={() => onPreviewBanner?.(banner)}>
+                      {banner.media_type === 'video' && (banner.video_url || banner.mobile_video_url) ? (
+                        <>
+                          <video
+                            className="w-full h-full object-cover hidden md:block"
+                            poster={banner.image_url}
+                            muted
+                            playsInline
+                          >
+                            <source src={banner.video_url || ''} type="video/mp4" />
+                          </video>
+                          <video
+                            className="w-full h-full object-cover md:hidden"
+                            poster={banner.mobile_image_url || banner.image_url}
+                            muted
+                            playsInline
+                          >
+                            <source src={banner.mobile_video_url || banner.video_url || ''} type="video/mp4" />
+                          </video>
+                          <div className="absolute top-1 right-1">
+                            <Video className="h-4 w-4 text-white drop-shadow" />
+                          </div>
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                            <Eye className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <img
+                            src={banner.image_url}
+                            alt={banner.title || 'Banner'}
+                            className="w-full h-full object-cover hidden md:block"
+                          />
+                          <img
+                            src={banner.mobile_image_url || banner.image_url}
+                            alt={banner.title || 'Banner'}
+                            className="w-full h-full object-cover md:hidden"
+                          />
+                          <div className="absolute top-1 right-1">
+                            <ImageIcon className="h-4 w-4 text-white drop-shadow" />
+                          </div>
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                            <Eye className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell>{banner.title || 'No title'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {banner.media_type === 'video' ? (
+                        <Video className="h-4 w-4 text-blue-500" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-gray-500" />
+                      )}
+                      <span>{banner.title || 'No title'}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{banner.subtitle || 'No subtitle'}</TableCell>
                   <TableCell>
                     {banner.link_url ? (
@@ -110,6 +170,13 @@ const BannersSection: React.FC<BannersSectionProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onPreviewBanner?.(banner)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"

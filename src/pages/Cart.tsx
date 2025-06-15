@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Cart = () => {
   const { items: cartItems, updateQuantity, removeFromCart, total: cartTotal } = useCart();
@@ -17,10 +17,24 @@ const Cart = () => {
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [productDataMap, setProductDataMap] = useState<Record<string, { sizes: string[] }>>({});
 
   const subtotal = cartTotal;
   const shippingCost = subtotal > 2000 ? 0 : 50;
   const total = subtotal - discount + shippingCost;
+
+  // Fetch product data for all cart items
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const ids = Array.from(new Set(cartItems.map(item => item.id.split('-')[0])));
+      if (ids.length === 0) return;
+      const { data } = await supabase.from('products').select('*').in('id', ids);
+      const map: Record<string, { sizes: string[] }> = {};
+      (data || []).forEach((product: { id: string; sizes: string[] }) => { map[product.id] = { sizes: product.sizes || [] }; });
+      setProductDataMap(map);
+    };
+    fetchProducts();
+  }, [cartItems]);
 
   const handleQuantityUpdate = (id: string, newQuantity: number) => {
     updateQuantity(id, newQuantity);
@@ -96,6 +110,28 @@ const Cart = () => {
     navigate('/checkout');
   };
 
+  // Update size handler
+  const updateSize = (cartItemId: string, newSize: string) => {
+    if (!cartItems || cartItems.length === 0) return;
+    // Use a workaround: copy cartItems, update, and call updateQuantity to force re-render
+    const item = cartItems.find((i: any) => i.id === cartItemId);
+    if (!item) return;
+    const baseId = cartItemId.split('-')[0];
+    const newId = `${baseId}-${newSize || 'no-size'}-${item.selectedColor || 'no-color'}`;
+    // Remove old item, add new (merge if needed)
+    let filtered = cartItems.filter((i: any) => i.id !== cartItemId);
+    const existing = filtered.find((i: any) => i.id === newId);
+    if (existing) {
+      // Merge quantities
+      filtered = filtered.map((i: any) => i.id === newId ? { ...i, quantity: i.quantity + item.quantity } : i);
+    } else {
+      filtered = [...filtered, { ...item, id: newId, selectedSize: newSize }];
+    }
+    // Save to localStorage and force update
+    localStorage.setItem('bakwas-cart', JSON.stringify(filtered));
+    window.location.reload(); // Quick workaround to force re-render
+  };
+
   return (
     <div 
       className="min-h-screen bg-background relative"
@@ -106,222 +142,214 @@ const Cart = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* Logo */}
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10">
+      {/* Logo and Heading - mobile responsive */}
+      <div className="flex flex-col items-center gap-2 mb-4 md:flex-row md:items-end md:gap-4">
         <img 
-          src="/lovable-uploads/760a84ab-66f6-4874-ad3a-c72e1cf8a830.png" 
+          src="/images-videos-logo/d5018b9a-2aba-4a8d-b876-4dff468b69d8.png" 
           alt="Bakwas Clothing Co." 
-          className="h-16 md:h-20 w-auto"
+          className="h-16 w-auto md:h-32 lg:h-40 xl:h-48"
         />
+        <span className="font-anton text-2xl md:text-4xl text-white tracking-widest drop-shadow mt-2 md:mt-0">SHOPPING CART</span>
       </div>
-      
-      <main className="container mx-auto px-4 py-8 pt-32">
-        {/* Breadcrumbs */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/" className="text-muted-foreground hover:text-foreground">
-                Home
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/shop" className="text-muted-foreground hover:text-foreground">
-                Shop
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="text-foreground font-medium">Cart</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+      <div className="accent-line mt-2 h-1 w-24 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full"></div>
+      <p className="hero-subtext mt-2 text-base md:text-lg text-gray-200/75 leading-relaxed text-left mb-8">
+        Your curated streetwear collection awaits checkout.
+      </p>
 
-        <h1 className="font-anton text-4xl md:text-5xl mb-8 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
-          Shopping Cart
-        </h1>
+      {cartItems.length === 0 ? (
+        /* Empty State */
+        <div className="text-center py-16">
+          <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-muted-foreground" />
+          <h2 className="font-anton text-2xl mb-4 text-muted-foreground">
+            Your cart is empty
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            Looks like you haven't added anything to your cart yet
+          </p>
+          <Button asChild className="bg-neon-cyan text-black hover:bg-neon-cyan/80">
+            <Link to="/shop">Continue Shopping</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="cart-container mx-auto px-6 md:px-12 py-12 max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left (col-span-2): Cart items */}
+          <div className="lg:col-span-2 space-y-6">
+            {cartItems.map((item) => (
+              <div key={item.id} className="flex bg-white/10 rounded-2xl p-4 gap-4 items-center shadow-md w-full max-w-full flex-wrap md:flex-nowrap">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <div className="font-semibold text-white text-base line-clamp-2 break-words">
+                    {item.title}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {productDataMap[item.id.split('-')[0]]?.sizes.length > 1 ? (
+                      <select
+                        value={item.selectedSize}
+                        onChange={e => updateSize(item.id, e.target.value)}
+                        className="rounded bg-white/10 text-white px-2 py-1 text-xs"
+                      >
+                        {productDataMap[item.id.split('-')[0]].sizes.map((size: string) => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-xs text-gray-300">Size: {item.selectedSize}</span>
+                    )}
+                    {item.selectedColor && (
+                      <span className="flex items-center gap-1 text-xs text-gray-300">
+                        <span className="inline-block w-3 h-3 rounded-full border border-white/20" style={{ background: item.selectedColor }} />
+                        {item.selectedColor}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      onClick={() => handleQuantityUpdate(item.id, item.quantity - 1)}
+                      disabled={item.quantity <= 1}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                    >
+                      –
+                    </button>
+                    <span className="text-white font-semibold min-w-[2rem] text-center">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => handleQuantityUpdate(item.id, item.quantity + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition text-white"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end flex-shrink-0 ml-2 gap-2">
+                  <p className="text-lg font-anton text-neon-cyan font-bold whitespace-nowrap">
+                    ₹{(item.price * item.quantity).toLocaleString()}
+                  </p>
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="text-red-400 hover:text-red-600 transition"
+                  >
+                    <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
+                </div>
+              </div>
+            ))}
 
-        {cartItems.length === 0 ? (
-          /* Empty State */
-          <div className="text-center py-16">
-            <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-muted-foreground" />
-            <h2 className="font-anton text-2xl mb-4 text-muted-foreground">
-              Your cart is empty
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Looks like you haven't added anything to your cart yet
-            </p>
-            <Button asChild className="bg-neon-cyan text-black hover:bg-neon-cyan/80">
-              <Link to="/shop">Continue Shopping</Link>
-            </Button>
+            {/* Continue Shopping Link */}
+            <div className="flex justify-center mt-4">
+              <Link 
+                to="/shop" 
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/20 backdrop-blur border border-white/20 text-white font-medium shadow hover:bg-neon-cyan/10 hover:text-neon-cyan transition"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Continue Shopping
+              </Link>
+            </div>
           </div>
-        ) : (
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Items List */}
-            <div className="lg:col-span-2 space-y-6">
-              {cartItems.map((item) => (
-                <Card key={item.id} className="bg-card/80 backdrop-blur-sm border-border">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-20 h-20 object-cover rounded-md flex-shrink-0"
-                      />
-                      
-                      <div className="flex-1">
-                        <h3 className="font-medium text-lg hover:text-neon-cyan transition-colors">
-                          {item.title}
-                        </h3>
-                        {item.selectedSize && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Size: {item.selectedSize}
-                          </p>
-                        )}
-                        <p className="text-lg font-bold text-neon-cyan mt-2">
-                          ₹{item.price.toLocaleString()}
-                        </p>
-                      </div>
 
-                      <div className="flex flex-col items-end gap-4">
-                        {/* Quantity Controls */}
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 hover:scale-110 transition-transform"
-                            onClick={() => handleQuantityUpdate(item.id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          
-                          <span className="w-12 text-center font-medium">
-                            {item.quantity}
-                          </span>
-                          
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 hover:scale-110 transition-transform"
-                            onClick={() => handleQuantityUpdate(item.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        {/* Line Total */}
-                        <p className="font-bold text-lg">
-                          ₹{(item.price * item.quantity).toLocaleString()}
-                        </p>
-
-                        {/* Remove Button */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive/80"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Continue Shopping */}
-              <div className="pt-4">
-                <Link 
-                  to="/shop" 
-                  className="text-neon-cyan hover:text-neon-cyan/80 transition-colors font-medium"
+          {/* Right (col-span-1): Order summary */}
+          <div className="order-summary bg-white/10 backdrop-blur-md rounded-2xl p-6 pb-8 space-y-6 shadow-lg lg:sticky lg:top-8 lg:self-start">
+            <h2 className="text-2xl font-space font-semibold text-white">Order Summary</h2>
+            
+            {/* Promo Code */}
+            <div className="promo">
+              <label className="text-sm text-gray-300 mb-1 block">Promo Code</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  disabled={isApplyingPromo}
+                  className="w-full bg-transparent border border-gray-600 rounded-lg py-2 px-4 pr-24 text-white focus:outline-none focus:border-neon-cyan transition-colors placeholder-gray-400"
+                />
+                <button
+                  onClick={handlePromoApply}
+                  disabled={!promoCode.trim() || isApplyingPromo}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: '6px',
+                    transform: 'translateY(-50%)',
+                    background: 'linear-gradient(to right, #00F0FF, #FF00D4, #FFA500)',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                    borderRadius: '9999px',
+                    paddingLeft: '20px',
+                    paddingRight: '20px',
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    transition: 'all 0.3s ease',
+                    border: 'none',
+                    cursor: 'pointer',
+                    opacity: (!promoCode.trim() || isApplyingPromo) ? 0.5 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!(!promoCode.trim() || isApplyingPromo)) {
+                      e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
+                      e.currentTarget.style.opacity = '0.95';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!(!promoCode.trim() || isApplyingPromo)) {
+                      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                      e.currentTarget.style.opacity = '1';
+                    }
+                  }}
                 >
-                  ← Continue Shopping
-                </Link>
+                  {isApplyingPromo ? (
+                    <Loader2 style={{ width: '16px', height: '16px', color: '#ffffff' }} className="animate-spin" />
+                  ) : (
+                    <span style={{ color: '#ffffff' }}>Apply</span>
+                  )}
+                </button>
               </div>
             </div>
 
-            {/* Order Summary */}
-            <div className="lg:sticky lg:top-8 lg:self-start">
-              <Card className="bg-card/80 backdrop-blur-sm border-border shadow-2xl">
-                <CardHeader>
-                  <CardTitle className="text-xl font-anton text-neon-cyan">
-                    Order Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Promo Code */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Promo Code</label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Enter promo code"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value)}
-                        className="focus:border-neon-cyan transition-colors"
-                        disabled={isApplyingPromo}
-                      />
-                      <Button
-                        onClick={handlePromoApply}
-                        disabled={!promoCode.trim() || isApplyingPromo}
-                        className="bg-neon-cyan text-black hover:bg-neon-cyan/80 min-w-[80px]"
-                      >
-                        {isApplyingPromo ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          'Apply'
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <hr className="border-border" />
-
-                  {/* Totals */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal</span>
-                      <span>₹{subtotal.toLocaleString()}</span>
-                    </div>
-
-                    {discount > 0 && (
-                      <div className="flex justify-between text-sm text-neon-cyan">
-                        <span>Discount ({appliedPromo})</span>
-                        <span>-₹{discount.toLocaleString()}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between text-sm">
-                      <span>Shipping</span>
-                      <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
-                    </div>
-
-                    <hr className="border-border" />
-
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span>₹{total.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Checkout Button */}
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={cartItems.length === 0}
-                    className="w-full py-4 bg-neon-cyan text-black hover:bg-neon-cyan/80 transition-all transform hover:scale-[1.02] text-lg font-bold"
-                  >
-                    Proceed to Checkout
-                  </Button>
-
-                  <p className="text-xs text-muted-foreground text-center">
-                    Secure checkout powered by Razorpay
-                  </p>
-                </CardContent>
-              </Card>
+            {/* Totals */}
+            <div className="totals space-y-2 text-right">
+              <div className="flex justify-between text-gray-300">
+                <span>Subtotal</span>
+                <span>₹{subtotal.toLocaleString()}</span>
+              </div>
+              
+              {discount > 0 && (
+                <div className="flex justify-between text-neon-cyan">
+                  <span>Discount ({appliedPromo})</span>
+                  <span>-₹{discount.toLocaleString()}</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between text-gray-300">
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+              </div>
+              
+              <hr className="border-gray-600"/>
+              
+              <div className="flex justify-between text-white font-semibold text-lg">
+                <span>Total</span>
+                <span>₹{total.toLocaleString()}</span>
+              </div>
             </div>
+
+            <button
+              onClick={handleCheckout}
+              disabled={cartItems.length === 0}
+              className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-3xl shadow-inner hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Proceed to Checkout
+            </button>
+            
+            <p className="text-xs text-gray-500 text-center">Secure checkout powered by Razorpay</p>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 };

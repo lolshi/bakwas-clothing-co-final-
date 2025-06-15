@@ -1,0 +1,32 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shirt body -->
+  <path d="M12 18V40C12 41.1046 12.8954 42 14 42H34C35.1046 42 36 41.1046 36 40V18" fill="#1a1a2e" stroke="#00ffee" stroke-width="2"/>
+  
+  <!-- Oversized sleeves -->
+  <path d="M6 14C6 12.8954 6.89543 12 8 12H12V18L8 22C6.89543 22 6 21.1046 6 20V14Z" fill="#1a1a2e" stroke="#00ffee" stroke-width="2"/>
+  <path d="M42 14C42 12.8954 41.1046 12 40 12H36V18L40 22C41.1046 22 42 21.1046 42 20V14Z" fill="#1a1a2e" stroke="#00ffee" stroke-width="2"/>
+  
+  <!-- Neckline -->
+  <path d="M16 12C16 8.68629 19.5817 6 24 6C28.4183 6 32 8.68629 32 12V16H16V12Z" fill="#1a1a2e" stroke="#00ffee" stroke-width="2"/>
+  
+  <!-- Oversized fit lines -->
+  <path d="M14 20H34M14 26H34M14 32H34" stroke="#00ffee" stroke-width="1" opacity="0.4" stroke-dasharray="2,2"/>
+  
+  <!-- Neon accent lines -->
+  <path d="M18 38L30 38" stroke="#ff0080" stroke-width="2" stroke-linecap="round"/>
+  <path d="M20 35L28 35" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Glow effect -->
+  <defs>
+    <filter id="shirtGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#shirtGlow)">
+    <path d="M12 18V40C12 41.1046 12.8954 42 14 42H34C35.1046 42 36 41.1046 36 40V18" fill="none" stroke="#00ffee" stroke-width="1" opacity="0.6"/>
+  </g>
+</svg> 

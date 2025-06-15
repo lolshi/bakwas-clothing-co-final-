@@ -1,0 +1,36 @@
+-- Insert a sample banner
+INSERT INTO homepage_banners (
+    title,
+    subtitle,
+    image_url,
+    mobile_image_url,
+    video_url,
+    mobile_video_url,
+    link_url,
+    is_active,
+    sort_order,
+    media_type,
+    show_title,
+    show_subtitle,
+    device_targeting,
+    created_at,
+    start_date,
+    end_date
+) VALUES (
+    'Welcome to Neon Streetwear',
+    'Discover our latest collection',
+    'https://your-storage-url.com/banners/desktop-banner.jpg',
+    'https://your-storage-url.com/banners/mobile-banner.jpg',
+    'https://your-storage-url.com/banners/desktop-banner.mp4',
+    'https://your-storage-url.com/banners/mobile-banner.mp4',
+    '/collections/all',
+    true,
+    1,
+    'video',
+    false,
+    false,
+    'all',
+    NOW(),
+    NOW(),
+    NULL
+); 

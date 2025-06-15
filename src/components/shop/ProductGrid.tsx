@@ -1,97 +1,40 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, ShoppingCart, Heart } from 'lucide-react';
-import { FilterState, Product } from '@/pages/Shop';
+import { Eye, ShoppingCart, Heart, Settings, RefreshCw } from 'lucide-react';
+import { FilterState } from '@/pages/Shop';
 import { supabase } from '@/integrations/supabase/client';
-import { useCart } from '@/contexts/CartContext';
-import { useWishlist } from '@/contexts/WishlistContext';
+import ProductCard from './ProductCard';
+import { getColorValueFromHex, getColorHexCode } from '@/config/colors';
+
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  category: string;
+  sizes: string[];
+  colors: string[];
+  color?: string;
+  description: string;
+  images: string[];
+  colorImages?: { [color: string]: string[] };
+  variants?: { color: string; size: string; stock: number; images: string[] }[];
+}
 
 interface ProductGridProps {
   filters: FilterState;
   onQuickView: (product: Product) => void;
+  onProductsLoaded?: (count: number) => void;
 }
 
-// Mock product data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    title: 'Neon Tiger Tee',
-    price: 699,
-    image: '/lovable-uploads/aae6428d-9a3d-4b45-87c4-900c7fe5558e.png',
-    category: 'oversized',
-    sizes: ['S', 'M', 'L', 'XL'],
-    colors: ['black', 'neon-cyan'],
-    description: 'Bold tiger design with neon accents',
-    images: ['/lovable-uploads/aae6428d-9a3d-4b45-87c4-900c7fe5558e.png']
-  },
-  {
-    id: '2',
-    title: 'Psychedelic Wave',
-    price: 799,
-    image: '/lovable-uploads/74ef635a-d462-4782-ad34-91d7888e17ba.png',
-    category: 'weekly',
-    sizes: ['M', 'L', 'XL', 'XXL'],
-    colors: ['black', 'neon-purple'],
-    description: 'Trippy wave pattern streetwear',
-    images: ['/lovable-uploads/74ef635a-d462-4782-ad34-91d7888e17ba.png']
-  },
-  {
-    id: '3',
-    title: 'Urban Glow',
-    price: 899,
-    image: '/lovable-uploads/6b112a77-ea8e-4f47-b08f-0f2be98c0b2f.png',
-    category: 'limited',
-    sizes: ['S', 'M', 'L'],
-    colors: ['black', 'neon-pink'],
-    description: 'Limited edition urban design',
-    images: ['/lovable-uploads/6b112a77-ea8e-4f47-b08f-0f2be98c0b2f.png']
-  },
-  {
-    id: '4',
-    title: 'Retro Vibes',
-    price: 649,
-    image: '/lovable-uploads/14a3ddc7-f46d-42ce-90fd-3937f6a2ad9c.png',
-    category: 'oversized',
-    sizes: ['M', 'L', 'XL'],
-    colors: ['white', 'neon-orange'],
-    description: 'Vintage inspired modern cut',
-    images: ['/lovable-uploads/14a3ddc7-f46d-42ce-90fd-3937f6a2ad9c.png']
-  },
-  {
-    id: '5',
-    title: 'Neon Dreams',
-    price: 749,
-    image: '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png',
-    category: 'weekly',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    colors: ['black', 'neon-cyan', 'neon-purple'],
-    description: 'Electric neon streetwear design',
-    images: ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png']
-  },
-  {
-    id: '6',
-    title: 'Street Phoenix',
-    price: 999,
-    image: '/lovable-uploads/ff44b883-13f3-4aa0-b0e9-b170b00e8311.png',
-    category: 'limited',
-    sizes: ['M', 'L', 'XL'],
-    colors: ['black', 'neon-pink', 'neon-orange'],
-    description: 'Premium phoenix design tee',
-    images: ['/lovable-uploads/ff44b883-13f3-4aa0-b0e9-b170b00e8311.png']
-  }
-];
-
-export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }) => {
+export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, onProductsLoaded }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
   const itemsPerPage = 8;
-
-  const { addToCart } = useCart();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     fetchProducts();
@@ -101,35 +44,108 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
     applyFilters();
   }, [products, filters]);
 
+  // Add effect to refresh when window gains focus (user comes back from admin panel)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('🔄 ProductGrid: Window focused, checking for updates...');
+      const timeSinceLastRefresh = Date.now() - lastRefresh;
+      if (timeSinceLastRefresh > 5000) { // Refresh if more than 5 seconds since last refresh
+        console.log('⚡ ProductGrid: Auto-refreshing products due to focus...');
+        fetchProducts();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [lastRefresh]);
+
   const fetchProducts = async () => {
     setLoading(true);
+    setLastRefresh(Date.now());
     try {
-      const { data, error } = await supabase
+      // 1. Fetch all active products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Transform Supabase data to match our Product interface
-      const transformedProducts: Product[] = (data || []).map(product => ({
-        id: product.id,
-        title: product.name,
-        price: product.price,
-        image: product.images?.[0] || '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png',
-        category: product.category_ids?.[0] || 'general',
-        sizes: ['S', 'M', 'L', 'XL'], // Default sizes
-        colors: [product.color || 'black'],
-        description: product.description || '',
-        images: product.images || ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png']
-      }));
-
-      // If no products from Supabase, use mock data
-      setProducts(transformedProducts.length > 0 ? transformedProducts : mockProducts);
+      if (productsError) throw productsError;
+      if (!productsData || productsData.length === 0) {
+        setProducts([]);
+        onProductsLoaded?.(0);
+        setLoading(false);
+        return;
+      }
+      // 2. Fetch all variants for these products
+      const productIds = productsData.map((p: any) => p.id);
+      const { data: variantsData, error: variantsError } = await supabase
+        .from('product_variants')
+        .select('product_id, color, images, size, price, stock_quantity')
+        .in('product_id', productIds);
+      if (variantsError) throw variantsError;
+      // 3. For each product, collect all color variants and their images
+      const transformedProducts: Product[] = productsData.map(product => {
+        const variants = (variantsData || []).filter(v => v.product_id === product.id);
+        
+        // Build colorImages map and colors array
+        const colorImages: { [color: string]: string[] } = {};
+        const allColors: string[] = [];
+        
+        variants.forEach(variant => {
+          if (variant.color && Array.isArray(variant.images) && variant.images.length > 0) {
+            // Store images for this color
+            if (!colorImages[variant.color]) {
+              colorImages[variant.color] = [];
+            }
+            // Add unique images for this color
+            variant.images.forEach(img => {
+              if (!colorImages[variant.color].includes(img)) {
+                colorImages[variant.color].push(img);
+              }
+            });
+            if (!allColors.includes(variant.color)) {
+              allColors.push(variant.color);
+            }
+          }
+        });
+        
+        // Use the first color's images as default only if no other images are available
+        let mainImages: string[] = [];
+        if (Array.isArray(product.images) && product.images.length > 0) {
+          mainImages = product.images;
+        } else if (Object.keys(colorImages).length > 0) {
+          // Use the first color's images as default
+          const firstColor = allColors[0];
+          mainImages = colorImages[firstColor] || [];
+        } else {
+          mainImages = ['/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png'];
+        }
+        
+        return {
+          id: product.id,
+          title: product.name,
+          price: product.price,
+          image: mainImages[0],
+          category: product.category_ids?.[0] || 'general',
+          sizes: variants.map(v => v.size),
+          colors: allColors,
+          description: product.description || '',
+          images: mainImages,
+          colorImages,
+          variants: variants.map(v => ({
+            color: v.color,
+            size: v.size,
+            stock: v.stock_quantity,
+            images: v.images
+          }))
+        };
+      });
+      setProducts(transformedProducts);
+      onProductsLoaded?.(transformedProducts.length);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      setProducts(mockProducts);
+      console.error('❌ ProductGrid: Error fetching products:', error);
+      setProducts([]);
+      onProductsLoaded?.(0);
     } finally {
       setLoading(false);
     }
@@ -137,32 +153,65 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
 
   const applyFilters = () => {
     let filtered = [...products];
+    console.log('🔍 ProductGrid: Starting filter process with', filtered.length, 'products');
 
     // Apply category filter
     if (filters.categories.length > 0) {
+      const beforeCategory = filtered.length;
       filtered = filtered.filter(product =>
         filters.categories.includes(product.category)
       );
+      console.log(`📂 Category filter: ${beforeCategory} → ${filtered.length} products (filtered by categories: ${filters.categories.join(', ')})`);
     }
 
     // Apply size filter
     if (filters.sizes.length > 0) {
+      const beforeSize = filtered.length;
       filtered = filtered.filter(product =>
         product.sizes.some(size => filters.sizes.includes(size))
       );
+      console.log(`👕 Size filter: ${beforeSize} → ${filtered.length} products (filtered by sizes: ${filters.sizes.join(', ')})`);
     }
 
     // Apply color filter
     if (filters.colors.length > 0) {
-      filtered = filtered.filter(product =>
-        product.colors.some(color => filters.colors.includes(color))
-      );
+      const beforeColor = filtered.length;
+      filtered = filtered.filter(product => {
+        // If product has a direct color property (hex code), use it
+        if (product.color?.startsWith('#')) {
+          return filters.colors.includes(product.color.toLowerCase());
+        }
+        // Otherwise, check the colors array and try to convert color names to hex
+        return product.colors.some(colorName => {
+          const colorHex = getColorHexCode(colorName);
+          return filters.colors.some(filterColor => {
+            // If filter color is a hex code, compare directly
+            if (filterColor.startsWith('#')) {
+              return filterColor.toLowerCase() === (colorHex || '').toLowerCase();
+            }
+            // Otherwise, compare using the standardized color values
+            return filterColor === colorName;
+          });
+        });
+      });
+      console.log(`🎨 Color filter: ${beforeColor} → ${filtered.length} products (filtered by colors: ${filters.colors.join(', ')})`);
     }
 
     // Apply price filter
+    const beforePrice = filtered.length;
+    const priceRangeMin = filters.priceRange[0];
+    const priceRangeMax = filters.priceRange[1];
+    
+    console.log(`💰 Price filter: Checking range ₹${priceRangeMin} - ₹${priceRangeMax}`);
+    products.forEach(product => {
+      const inRange = product.price >= priceRangeMin && product.price <= priceRangeMax;
+      console.log(`   ${product.title}: ₹${product.price} ${inRange ? '✅ INCLUDED' : '❌ EXCLUDED'}`);
+    });
+    
     filtered = filtered.filter(product =>
-      product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
+      product.price >= priceRangeMin && product.price <= priceRangeMax
     );
+    console.log(`💰 Price filter: ${beforePrice} → ${filtered.length} products`);
 
     // Apply sorting
     switch (filters.sortBy) {
@@ -182,33 +231,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
         break;
     }
 
+    console.log('✅ Final filtered products:', filtered.length);
+    console.log('📋 Filtered product names:', filtered.map(p => p.title));
+
     setFilteredProducts(filtered);
-  };
-
-  const handleAddToCart = (product: Product) => {
-    addToCart(product);
-    // Fire GTM event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'add_to_cart', {
-        currency: 'INR',
-        value: product.price,
-        items: [{
-          item_id: product.id,
-          item_name: product.title,
-          category: product.category,
-          price: product.price,
-          quantity: 1
-        }]
-      });
-    }
-  };
-
-  const handleWishlistToggle = (product: Product) => {
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(product);
-    }
   };
 
   const loadMore = () => {
@@ -220,13 +246,13 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i} className="bg-card border-border animate-pulse">
-            <div className="aspect-square bg-muted rounded-t-lg"></div>
-            <CardContent className="p-4">
-              <div className="h-4 bg-muted rounded mb-2"></div>
-              <div className="h-4 bg-muted rounded w-1/2"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        {[...Array(8)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <div className="aspect-square bg-gray-200 rounded-lg"></div>
+            <CardContent className="p-3 md:p-4">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
             </CardContent>
           </Card>
         ))}
@@ -234,62 +260,49 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
     );
   }
 
+  // Add debug info if no products found
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-8 md:py-12">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 md:p-6 mb-4 md:mb-6">
+          <h3 className="text-base md:text-lg font-semibold text-yellow-800 mb-2">No Products Found</h3>
+          <p className="text-sm md:text-base text-yellow-700 mb-4">
+            There are no active products to display in the shop. This could mean:
+          </p>
+          <ul className="text-xs md:text-sm text-yellow-600 text-left max-w-md mx-auto space-y-1">
+            <li>• No products have been added yet</li>
+            <li>• Products exist but are not activated (is_active = false)</li>
+            <li>• There's a database connection issue</li>
+          </ul>
+          <div className="mt-4 space-x-3">
+            <Button 
+              onClick={fetchProducts}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm md:text-base"
+            >
+              Retry Loading
+            </Button>
+            <Button asChild variant="outline" className="text-sm md:text-base">
+              <a href="/admin/products">Go to Admin Panel</a>
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm md:text-base text-gray-500">
+          Check the browser console (F12) for detailed debugging information.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="space-y-6 md:space-y-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {displayedProducts.map((product, index) => (
-          <Card 
+          <ProductCard
             key={product.id} 
-            className="bg-card border-border group hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fade-in"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <div className="relative aspect-square overflow-hidden">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading={index < 8 ? 'eager' : 'lazy'}
-              />
-              
-              {/* Overlay buttons */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-4">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => onQuickView(product)}
-                  className="bg-white/90 hover:bg-white text-black"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  onClick={() => handleAddToCart(product)}
-                  className="bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-cyan/80 hover:to-neon-purple/80 text-black transition-all transform hover:scale-110"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => handleWishlistToggle(product)}
-                  className={`${
-                    isInWishlist(product.id) 
-                      ? 'border-neon-pink bg-neon-pink/10 text-neon-pink hover:bg-neon-pink/20' 
-                      : 'border-white/20 bg-white/10 text-white hover:border-neon-pink hover:text-neon-pink'
-                  } transition-all transform hover:scale-110`}
-                >
-                  <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                </Button>
-              </div>
-            </div>
-            
-            <CardContent className="p-4">
-              <h3 className="font-anton text-lg mb-1 text-foreground group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-neon-cyan group-hover:to-neon-purple group-hover:bg-clip-text transition-all">
-                {product.title}
-              </h3>
-              <p className="text-xl font-semibold text-primary">₹{product.price}</p>
-            </CardContent>
-          </Card>
+            product={product}
+            index={index}
+            onQuickView={onQuickView}
+          />
         ))}
       </div>
 
@@ -299,7 +312,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
           <Button
             onClick={loadMore}
             size="lg"
-            className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink hover:from-neon-cyan/80 hover:via-neon-purple/80 hover:to-neon-pink/80 text-black font-space font-semibold"
+            className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink hover:from-neon-cyan/80 hover:via-neon-purple/80 hover:to-neon-pink/80 text-black font-space font-semibold text-sm md:text-base"
           >
             Load More
           </Button>
@@ -307,10 +320,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView }
       )}
 
       {filteredProducts.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">No products found matching your filters.</p>
+        <div className="text-center py-8 md:py-12">
+          <p className="text-muted-foreground text-base md:text-lg">No products found matching your filters.</p>
         </div>
       )}
     </div>
   );
 };
+

@@ -5,7 +5,7 @@ declare global {
       command: 'config' | 'event' | 'js' | 'set',
       targetId: string | Date,
       config?: {
-        [key: string]: any;
+        [key: string]: unknown;
         currency?: string;
         value?: number;
         items?: Array<{
@@ -13,6 +13,7 @@ declare global {
           item_name: string;
           quantity: number;
           price: number;
+          category?: string;
         }>;
       }
     ) => void;

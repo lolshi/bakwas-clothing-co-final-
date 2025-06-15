@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const checkoutSchema = z.object({
@@ -11,6 +10,7 @@ export const checkoutSchema = z.object({
   postalCode: z.string().min(5, 'Please enter a valid postal code'),
   country: z.string().min(2, 'Please select a country'),
   customerNotes: z.string().optional(),
+  paymentMethod: z.string().min(1, 'Please select a payment method'),
 });
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;

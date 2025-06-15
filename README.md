@@ -1,73 +1,104 @@
-# Welcome to your Lovable project
+# BAKWAS AI Service
 
-## Project info
+This service integrates DeepSeek V3, a powerful open-source language model, into the BAKWAS e-commerce platform for generating product descriptions, tags, and SEO content.
 
-**URL**: https://lovable.dev/projects/ab6704ef-d1c6-4d2f-91fe-b56744315455
+## Requirements
 
-## How can I edit this code?
+- Python 3.8+
+- CUDA-compatible GPU with at least 24GB VRAM (or 2 GPUs with 12GB+ each)
+- CUDA 11.7 or later
 
-There are several ways of editing your application.
+## Setup
 
-**Use Lovable**
+1. Create and activate a Python virtual environment:
+```bash
+# Windows
+python -m venv venv
+.\venv\Scripts\activate
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ab6704ef-d1c6-4d2f-91fe-b56744315455) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Start the AI server:
+```bash
+python server.py
+```
 
-**Use GitHub Codespaces**
+The server will run on http://localhost:3000.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## GPU Configuration
 
-## What technologies are used for this project?
+The service is configured to use tensor parallelism across 2 GPUs by default. If you have:
+- Single GPU with 24GB+ VRAM: Set `tp_size=1` in server.py
+- Two GPUs with 12GB+ VRAM each: Keep `tp_size=2` (default)
+- More GPUs: Adjust `tp_size` accordingly
 
-This project is built with:
+## API Endpoints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### POST /v1/chat/completions
 
-## How can I deploy this project?
+Generate AI completions for various tasks.
 
-Simply open [Lovable](https://lovable.dev/projects/ab6704ef-d1c6-4d2f-91fe-b56744315455) and click on Share -> Publish.
+Request body:
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Your prompt here"
+    }
+  ],
+  "max_tokens": 1024,
+  "temperature": 0.7
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+Response:
+```json
+{
+  "response": "Generated text",
+  "usage": {
+    "prompt_tokens": 123,
+    "completion_tokens": 456,
+    "total_tokens": 579
+  }
+}
+```
 
-Yes, you can!
+## Integration with React App
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The AI service is integrated into the React application through the `aiService.ts` module, which provides methods for:
+- Generating product descriptions
+- Suggesting product tags
+- Creating SEO descriptions
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Example usage:
+```typescript
+import { AIService } from '../services/aiService';
+
+// Generate product description
+const description = await AIService.generateProductDescription(
+  "Urban Night Hoodie",
+  "Hoodies",
+  ["Glow-in-dark print", "Premium cotton blend", "Oversized fit"]
+);
+
+// Get product tags
+const tags = await AIService.suggestProductTags(
+  "Urban Night Hoodie",
+  description
+);
+
+// Generate SEO description
+const seoDesc = await AIService.generateSEODescription(
+  "Urban Night Hoodie",
+  description
+);
+```
