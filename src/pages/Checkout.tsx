@@ -243,7 +243,7 @@ const Checkout = () => {
         }
 
           // Create Razorpay order via API
-          const response = await fetch('http://localhost:8000/api/create-razorpay-order', {
+          const response = await fetch('/api/create-razorpay-order', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
