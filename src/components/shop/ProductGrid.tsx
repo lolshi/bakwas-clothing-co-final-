@@ -5,7 +5,7 @@ import { Eye, ShoppingCart, Heart, Settings, RefreshCw } from 'lucide-react';
 import { FilterState } from '@/pages/Shop';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from './ProductCard';
-import { getColorValueFromHex, getColorHexCode } from '@/config/colors';
+import { getColorValueFromHex, getColorHexCode, getNearestColorFamilyAndShade } from '@/config/colors';
 
 interface Product {
   id: string;
@@ -19,7 +19,7 @@ interface Product {
   description: string;
   images: string[];
   colorImages?: { [color: string]: string[] };
-  variants?: { color: string; size: string; stock: number; images: string[] }[];
+  variants?: { color: string; size: string; stock: number; images: string[]; price: number }[];
 }
 
 interface ProductGridProps {
@@ -91,6 +91,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, 
         const colorImages: { [color: string]: string[] } = {};
         const allColors: string[] = [];
         
+        // Calculate minimum variant price
+        const variantPrices = variants.map(v => v.price).filter(Boolean);
+        const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.price;
+        
         variants.forEach(variant => {
           if (variant.color && Array.isArray(variant.images) && variant.images.length > 0) {
             // Store images for this color
@@ -124,7 +128,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, 
         return {
           id: product.id,
           title: product.name,
-          price: product.price,
+          price: minVariantPrice,
           image: mainImages[0],
           category: product.category_ids?.[0] || 'general',
           sizes: variants.map(v => v.size),
@@ -136,7 +140,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, 
             color: v.color,
             size: v.size,
             stock: v.stock_quantity,
-            images: v.images
+            images: v.images,
+            price: v.price
           }))
         };
       });
@@ -177,20 +182,17 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, 
     if (filters.colors.length > 0) {
       const beforeColor = filtered.length;
       filtered = filtered.filter(product => {
-        // If product has a direct color property (hex code), use it
-        if (product.color?.startsWith('#')) {
-          return filters.colors.includes(product.color.toLowerCase());
-        }
-        // Otherwise, check the colors array and try to convert color names to hex
-        return product.colors.some(colorName => {
-          const colorHex = getColorHexCode(colorName);
+        // Check all variants for a color match
+        return product.variants?.some(variant => {
+          // Always map both variant color and filter color to their nearest display name
+          const variantHex = variant.color.startsWith('#') ? variant.color : getColorHexCode(variant.color) || variant.color;
+          const variantDisplay = getNearestColorFamilyAndShade(variantHex).displayName.toLowerCase();
           return filters.colors.some(filterColor => {
-            // If filter color is a hex code, compare directly
-            if (filterColor.startsWith('#')) {
-              return filterColor.toLowerCase() === (colorHex || '').toLowerCase();
-            }
-            // Otherwise, compare using the standardized color values
-            return filterColor === colorName;
+            // Map filter color to display name if it's a hex
+            const filterDisplay = filterColor.startsWith('#')
+              ? getNearestColorFamilyAndShade(filterColor).displayName.toLowerCase()
+              : filterColor.toLowerCase();
+            return variantDisplay === filterDisplay;
           });
         });
       });
@@ -214,22 +216,34 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ filters, onQuickView, 
     console.log(`💰 Price filter: ${beforePrice} → ${filtered.length} products`);
 
     // Apply sorting
+    console.log('Applying sort:', filters.sortBy);
+    console.log('Products before sort:', filtered.map(p => ({ title: p.title, price: p.price })));
+    
     switch (filters.sortBy) {
       case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => {
+          console.log(`Comparing ${a.title} (${a.price}) with ${b.title} (${b.price})`);
+          return a.price - b.price;
+        });
         break;
       case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => {
+          console.log(`Comparing ${a.title} (${a.price}) with ${b.title} (${b.price})`);
+          return b.price - a.price;
+        });
         break;
-      case 'best-selling':
-        // Mock best selling logic
+      case 'popular':
+        // Sort by popularity (for now, we'll use a random sort as a placeholder)
+        // In the future, this should be based on actual sales/view data
         filtered.sort(() => Math.random() - 0.5);
         break;
       case 'newest':
       default:
-        // Keep original order for newest
+        // Products are already sorted by created_at in descending order from the fetch
         break;
     }
+
+    console.log('Products after sort:', filtered.map(p => ({ title: p.title, price: p.price })));
 
     console.log('✅ Final filtered products:', filtered.length);
     console.log('📋 Filtered product names:', filtered.map(p => p.title));

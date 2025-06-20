@@ -37,8 +37,14 @@ class GroqAIService {
   `;
 
   constructor() {
+    console.log('🏗️ Debug - GroqAIService Constructor:');
+    console.log('- import.meta.env exists:', !!import.meta.env);
+    console.log('- VITE_GROQ_API_KEY exists:', !!import.meta.env.VITE_GROQ_API_KEY);
+    console.log('- VITE_GROQ_API_KEY value length:', import.meta.env.VITE_GROQ_API_KEY?.length || 0);
+    
     // Use Groq API key from environment variables
     this.apiKey = import.meta.env.VITE_GROQ_API_KEY || '';
+    console.log('🔑 Debug - Service API Key Status:', this.apiKey ? 'Present (length: ' + this.apiKey.length + ')' : 'Missing');
   }
 
   async analyzeProductImage(request: ProductAnalysisRequest): Promise<GroqAIResponse> {

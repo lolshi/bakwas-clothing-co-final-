@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, X, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { Product as BaseProduct } from '@/pages/Shop';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
@@ -58,6 +58,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const [added, setAdded] = useState(false);
 
   // Reset selections when modal opens
   React.useEffect(() => {
@@ -124,6 +125,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
         }]
       });
     }
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1200);
   };
 
   const handleWishlistToggle = () => {
@@ -366,25 +369,44 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
                   <div className="flex gap-4">
                     <Button
                       onClick={handleAddToCart}
-                      className="flex-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:from-neon-cyan/80 hover:to-neon-pink/80 text-black font-bold py-6"
-                      disabled={!selectedSize || !selectedColor}
+                      className={`flex-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:from-neon-cyan/80 hover:to-neon-pink/80 text-black font-bold py-6 relative overflow-hidden transition-all duration-300 ${added ? 'bg-green-500 scale-105' : ''}`}
+                      disabled={!selectedSize || !selectedColor || added}
                     >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      Add to Cart
+                      <AnimatePresence initial={false}>
+                        {added ? (
+                          <motion.span
+                            key="tick"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1.2, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                            className="flex items-center gap-1 justify-center"
+                          >
+                            <CheckCircle className="w-5 h-5 mr-1" />
+                            Added!
+                          </motion.span>
+                        ) : (
+                          <span key="text" className="flex items-center"><ShoppingCart className="w-5 h-5 mr-2" />Add to Cart</span>
+                        )}
+                      </AnimatePresence>
                     </Button>
-                    <Button
+                    <button
                       onClick={handleWishlistToggle}
-                      variant="outline"
-                      className={`p-6 border-2 ${
-                        isInWishlist(product.id)
-                          ? 'border-red-500 text-red-500 hover:bg-red-500/10'
-                          : 'border-white/20 text-white hover:bg-white/10'
-                      }`}
+                      className={`relative transition-all duration-200 rounded-full w-12 h-12 flex items-center justify-center
+                        ${isInWishlist(product.id)
+                          ? 'bg-black/60 border border-neon-pink shadow-[0_0_12px_2px_rgba(255,0,153,0.4)]'
+                          : 'bg-black/40 border border-white/20 hover:border-neon-cyan hover:shadow-[0_0_8px_2px_rgba(0,255,255,0.3)]'}
+                        hover:scale-105 focus:outline-none focus:ring-2 focus:ring-neon-cyan/40`}
+                      aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
                       <Heart
-                        className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-red-500' : ''}`}
+                        className={`w-6 h-6 transition-all duration-200
+                          ${isInWishlist(product.id)
+                            ? 'fill-neon-pink text-neon-pink drop-shadow-[0_0_6px_rgba(255,0,153,0.7)]'
+                            : 'stroke-white text-white fill-none'}
+                        `}
                       />
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>

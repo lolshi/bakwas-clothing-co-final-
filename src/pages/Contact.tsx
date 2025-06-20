@@ -81,10 +81,10 @@ const Contact = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 p-4">
+      <div className="relative z-10 p-4 sm:p-6 md:p-8">
         {/* Hero Section */}
         <motion.div 
-          className="text-center py-12"
+          className="text-center py-6 sm:py-8 md:py-12"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -92,7 +92,7 @@ const Contact = () => {
           <motion.img 
             src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
             alt="Bakwas Clothing Co." 
-            className="w-48 h-auto mx-auto mb-8 drop-shadow-2xl"
+            className="w-32 sm:w-40 md:w-48 h-auto mx-auto mb-4 sm:mb-6 md:mb-8 drop-shadow-2xl"
             animate={{ 
               filter: [
                 'drop-shadow(0 0 20px rgba(0, 225, 255, 0.5))',
@@ -104,7 +104,7 @@ const Contact = () => {
           />
           
           <motion.h1 
-            className="text-6xl md:text-8xl font-anton bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent mb-4"
+            className="text-4xl sm:text-6xl md:text-8xl font-anton bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4"
             animate={{ 
               backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
             }}
@@ -115,7 +115,7 @@ const Contact = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl md:text-2xl text-white/80 font-space max-w-2xl mx-auto"
+            className="text-lg sm:text-xl md:text-2xl text-white/80 font-space max-w-2xl mx-auto px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
@@ -126,30 +126,30 @@ const Contact = () => {
         </motion.div>
 
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {/* Contact Form - Takes 2 columns */}
             <motion.div 
-              className="lg:col-span-2"
+              className="lg:col-span-2 order-2 lg:order-1"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/30 shadow-2xl shadow-neon-cyan/20 hover:shadow-neon-purple/30 transition-all duration-500">
-                <CardHeader className="pb-6">
-                  <CardTitle className="text-neon-cyan text-3xl font-anton flex items-center gap-3">
-                    <MessageCircle className="h-8 w-8 text-neon-cyan" />
+                <CardHeader className="pb-4 sm:pb-6">
+                  <CardTitle className="text-neon-cyan text-2xl sm:text-3xl font-anton flex items-center gap-2 sm:gap-3">
+                    <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-neon-cyan" />
                     SEND US A MESSAGE
                   </CardTitle>
                   <div className="h-1 w-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink rounded-full"></div>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                    <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                       <motion.div
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <Label htmlFor="name" className="text-neon-cyan font-space font-semibold text-lg mb-2 block">
+                        <Label htmlFor="name" className="text-neon-cyan font-space font-semibold text-base sm:text-lg mb-1 sm:mb-2 block">
                           Name *
                         </Label>
                         <Input
@@ -157,7 +157,7 @@ const Contact = () => {
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
-                          className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-12 text-lg backdrop-blur-sm"
+                          className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-10 sm:h-12 text-base sm:text-lg backdrop-blur-sm"
                           placeholder="Your Name"
                           required
                         />
@@ -167,7 +167,7 @@ const Contact = () => {
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <Label htmlFor="email" className="text-neon-cyan font-space font-semibold text-lg mb-2 block">
+                        <Label htmlFor="email" className="text-neon-cyan font-space font-semibold text-base sm:text-lg mb-1 sm:mb-2 block">
                           Email *
                         </Label>
                         <Input
@@ -176,7 +176,7 @@ const Contact = () => {
                           type="email"
                           value={formData.email}
                           onChange={handleChange}
-                          className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-12 text-lg backdrop-blur-sm"
+                          className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-10 sm:h-12 text-base sm:text-lg backdrop-blur-sm"
                           placeholder="your.email@example.com"
                           required
                         />
@@ -187,7 +187,7 @@ const Contact = () => {
                       whileHover={{ scale: 1.02 }}
                       transition={{ type: "spring", stiffness: 300 }}
                     >
-                      <Label htmlFor="subject" className="text-neon-cyan font-space font-semibold text-lg mb-2 block">
+                      <Label htmlFor="subject" className="text-neon-cyan font-space font-semibold text-base sm:text-lg mb-1 sm:mb-2 block">
                         Subject *
                       </Label>
                       <Input
@@ -195,7 +195,7 @@ const Contact = () => {
                         name="subject"
                         value={formData.subject}
                         onChange={handleChange}
-                        className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-12 text-lg backdrop-blur-sm"
+                        className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl h-10 sm:h-12 text-base sm:text-lg backdrop-blur-sm"
                         placeholder="How can we help?"
                         required
                       />
@@ -205,7 +205,7 @@ const Contact = () => {
                       whileHover={{ scale: 1.01 }}
                       transition={{ type: "spring", stiffness: 300 }}
                     >
-                      <Label htmlFor="message" className="text-neon-cyan font-space font-semibold text-lg mb-2 block">
+                      <Label htmlFor="message" className="text-neon-cyan font-space font-semibold text-base sm:text-lg mb-1 sm:mb-2 block">
                         Message *
                       </Label>
                       <Textarea
@@ -214,7 +214,7 @@ const Contact = () => {
                         rows={6}
                         value={formData.message}
                         onChange={handleChange}
-                        className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl text-lg backdrop-blur-sm resize-none"
+                        className="bg-gray-900/60 text-white border-2 border-gray-600 focus:border-neon-cyan transition-all duration-300 rounded-xl text-base sm:text-lg backdrop-blur-sm resize-none"
                         placeholder="Tell us more about your inquiry... Share your streetwear dreams, questions, or feedback!"
                         required
                       />
@@ -223,12 +223,12 @@ const Contact = () => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="mt-8"
+                      className="mt-6 sm:mt-8"
                     >
                       <Button 
                         type="submit" 
                         disabled={isSubmitting} 
-                        className="group relative w-full h-16 text-xl font-anton overflow-hidden rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="group relative w-full h-12 sm:h-16 text-lg sm:text-xl font-anton overflow-hidden rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
                       >
                         {/* Main glass background */}
                         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
@@ -299,110 +299,75 @@ const Contact = () => {
 
             {/* Contact Information Sidebar */}
             <motion.div 
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6 order-1 lg:order-2"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
               {/* Contact Details */}
               <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-purple/30 shadow-2xl shadow-neon-purple/20 hover:shadow-neon-cyan/30 transition-all duration-500">
-                <CardHeader>
-                  <CardTitle className="text-neon-purple text-2xl font-anton flex items-center gap-3">
-                    <Mail className="h-6 w-6 text-neon-purple" />
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-neon-purple text-xl sm:text-2xl font-anton flex items-center gap-2 sm:gap-3">
+                    <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-neon-purple" />
                     CONNECT WITH US
                   </CardTitle>
                   <div className="h-1 w-full bg-gradient-to-r from-neon-purple to-neon-pink rounded-full"></div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
                   <motion.div 
-                    className="flex items-center gap-4 p-4 bg-gray-900/40 rounded-xl border border-neon-cyan/20 hover:border-neon-cyan/50 transition-all duration-300"
+                    className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-900/40 rounded-xl border border-neon-cyan/20 hover:border-neon-cyan/50 transition-all duration-300"
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(0, 225, 255, 0.1)" }}
                   >
-                    <Mail className="h-6 w-6 text-neon-cyan flex-shrink-0" />
+                    <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-neon-cyan flex-shrink-0" />
                     <div>
-                      <p className="text-neon-cyan/80 text-sm font-space font-medium">Email</p>
-                      <p className="text-neon-cyan font-space font-bold text-lg">support@bakwasclothingco.com</p>
+                      <p className="text-neon-cyan/80 text-xs sm:text-sm font-space font-medium">Email</p>
+                      <p className="text-neon-cyan font-space font-bold text-base sm:text-lg break-all">support@bakwasclothingco.com</p>
                     </div>
                   </motion.div>
                   
                   <motion.div 
-                    className="flex items-start gap-4 p-4 bg-gray-900/40 rounded-xl border border-neon-pink/20 hover:border-neon-pink/50 transition-all duration-300"
+                    className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-900/40 rounded-xl border border-neon-pink/20 hover:border-neon-pink/50 transition-all duration-300"
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(236, 72, 153, 0.1)" }}
                   >
-                    <MapPin className="h-6 w-6 text-neon-pink flex-shrink-0 mt-1" />
+                    <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-neon-pink flex-shrink-0 mt-1" />
                     <div>
-                      <p className="text-neon-pink/80 text-sm font-space font-medium">Address</p>
-                      <p className="text-neon-pink font-space font-bold text-lg">RZG/634-B Lohia Marg, New Delhi 110077</p>
+                      <p className="text-neon-pink/80 text-xs sm:text-sm font-space font-medium">Address</p>
+                      <p className="text-neon-pink font-space font-bold text-base sm:text-lg">RZG/634-B Lohia Marg, New Delhi 110077</p>
                     </div>
                   </motion.div>
                 </CardContent>
               </Card>
 
               {/* Business Hours */}
-              <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-orange/30 shadow-2xl shadow-neon-orange/20 hover:shadow-neon-pink/30 transition-all duration-500">
-                <CardHeader>
-                  <CardTitle className="text-neon-orange text-2xl font-anton flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-neon-orange" />
+              <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-orange/30 shadow-2xl shadow-neon-orange/20 hover:shadow-neon-cyan/30 transition-all duration-500">
+                <CardHeader className="p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-neon-orange text-xl sm:text-2xl font-anton flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-neon-orange" />
                     BUSINESS HOURS
                   </CardTitle>
-                  <div className="h-1 w-full bg-gradient-to-r from-neon-orange to-neon-cyan rounded-full"></div>
+                  <div className="h-1 w-full bg-gradient-to-r from-neon-orange to-neon-pink rounded-full"></div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <motion.div 
-                      className="flex justify-between items-center p-3 bg-gray-900/40 rounded-lg"
-                      whileHover={{ backgroundColor: "rgba(139, 92, 246, 0.1)" }}
-                    >
-                      <span className="text-neon-cyan font-space font-medium">Monday - Friday</span>
-                      <span className="text-neon-cyan font-space font-bold">9:00 AM - 6:00 PM</span>
-                    </motion.div>
-                    <motion.div 
-                      className="flex justify-between items-center p-3 bg-gray-900/40 rounded-lg"
-                      whileHover={{ backgroundColor: "rgba(236, 72, 153, 0.1)" }}
-                    >
-                      <span className="text-neon-pink font-space font-medium">Saturday</span>
-                      <span className="text-neon-pink font-space font-bold">10:00 AM - 4:00 PM</span>
-                    </motion.div>
-                    <motion.div 
-                      className="flex justify-between items-center p-3 bg-gray-900/40 rounded-lg"
-                      whileHover={{ backgroundColor: "rgba(249, 115, 22, 0.1)" }}
-                    >
-                      <span className="text-neon-orange font-space font-medium">Sunday</span>
-                      <span className="text-neon-orange font-space font-bold">Closed</span>
-                    </motion.div>
+                <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    <div className="text-white/80 font-space">
+                      <p className="text-sm sm:text-base font-semibold">Monday - Friday</p>
+                      <p className="text-xs sm:text-sm">10:00 AM - 7:00 PM</p>
+                    </div>
+                    <div className="text-white/80 font-space">
+                      <p className="text-sm sm:text-base font-semibold">Saturday</p>
+                      <p className="text-xs sm:text-sm">11:00 AM - 6:00 PM</p>
+                    </div>
+                    <div className="text-white/80 font-space col-span-2">
+                      <p className="text-sm sm:text-base font-semibold">Sunday</p>
+                      <p className="text-xs sm:text-sm">Closed</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Links */}
-              <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/30 shadow-2xl shadow-neon-cyan/20">
-                <CardHeader>
-                  <CardTitle className="text-neon-cyan text-2xl font-anton">
-                    QUICK LINKS
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <motion.a
-                    href="/shop"
-                    className="block p-3 bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20 text-neon-cyan font-space font-semibold rounded-lg hover:from-neon-cyan/30 hover:to-neon-purple/30 transition-all duration-300"
-                    whileHover={{ scale: 1.05, x: 10 }}
-                  >
-                    → Shop Collection
-                  </motion.a>
-                  <motion.a
-                    href="/bakwais"
-                    className="block p-3 bg-gradient-to-r from-neon-purple/20 to-neon-pink/20 text-neon-purple font-space font-semibold rounded-lg hover:from-neon-purple/30 hover:to-neon-pink/30 transition-all duration-300"
-                    whileHover={{ scale: 1.05, x: 10 }}
-                  >
-                    → Chat with bakwAIs
-                  </motion.a>
-                  <motion.a
-                    href="/about"
-                    className="block p-3 bg-gradient-to-r from-neon-pink/20 to-neon-orange/20 text-neon-pink font-space font-semibold rounded-lg hover:from-neon-pink/30 hover:to-neon-orange/30 transition-all duration-300"
-                    whileHover={{ scale: 1.05, x: 10 }}
-                  >
-                    → About BAKWAS
-                  </motion.a>
+                  
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-white/60 text-xs sm:text-sm font-space">
+                      * All times are in Indian Standard Time (IST)
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -410,16 +375,16 @@ const Contact = () => {
         </div>
       </div>
 
-      {/* Enhanced Success Modal */}
+      {/* Success Modal */}
       {showModal && (
         <motion.div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div 
-            className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-8 max-w-md mx-4 relative border-2 border-neon-cyan/50 shadow-2xl shadow-neon-cyan/30"
+            className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl p-6 sm:p-8 max-w-md w-full relative border-2 border-neon-cyan/50 shadow-2xl shadow-neon-cyan/30"
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
@@ -427,53 +392,38 @@ const Contact = () => {
           >
             <motion.button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-white/60 hover:text-neon-cyan transition-colors"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white/60 hover:text-neon-cyan transition-colors"
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </motion.button>
             
+            <div className="text-center">
             <motion.div 
-              className="text-center"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <motion.div 
-                className="w-20 h-20 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6"
-                animate={{ 
-                  boxShadow: [
-                    '0 0 20px rgba(0, 225, 255, 0.5)',
-                    '0 0 40px rgba(139, 92, 246, 0.5)',
-                    '0 0 20px rgba(0, 225, 255, 0.5)'
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-neon-cyan/20 rounded-full flex items-center justify-center"
               >
-                <Send className="h-10 w-10 text-black" />
+                <Send className="h-8 w-8 sm:h-10 sm:w-10 text-neon-cyan" />
               </motion.div>
               
-              <h2 className="text-4xl font-anton bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent mb-4">
-                MESSAGE SENT!
-              </h2>
-              <p className="text-white/80 font-space text-lg mb-6">
-                Thanks for reaching out! We'll connect with you within 24 hours. 
-                Keep spreading the <span className="text-neon-cyan font-bold">BAKWAS</span> vibe! 🚀
+              <h3 className="text-2xl sm:text-3xl font-anton text-neon-cyan mb-2 sm:mb-3">
+                Message Sent!
+              </h3>
+              
+              <p className="text-white/80 text-base sm:text-lg font-space mb-6 sm:mb-8">
+                Thank you for reaching out! We'll get back to you within 24-48 hours.
               </p>
               
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
                 <Button 
                   onClick={() => setShowModal(false)}
-                  className="w-full bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-purple hover:to-neon-pink text-black font-anton text-lg py-3 rounded-xl shadow-lg transition-all duration-500"
+                className="w-full bg-gradient-to-r from-neon-cyan to-neon-purple text-white font-anton text-lg sm:text-xl py-2 sm:py-3 rounded-xl hover:opacity-90 transition-opacity"
                 >
-                  AWESOME!
+                Close
                 </Button>
-              </motion.div>
-            </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       )}

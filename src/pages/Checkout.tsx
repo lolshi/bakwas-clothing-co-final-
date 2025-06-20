@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import FloatingField from '@/components/FloatingField';
 import FloatingSelect from '@/components/FloatingSelect';
+import { initializeRazorpayPayment } from '@/utils/razorpay';
 
 // Define the promo code type
 interface PromoCodeData {
@@ -30,13 +31,22 @@ interface PromoCodeData {
 
 const Checkout = () => {
   const { user } = useAuth();
-  const { items: cartItems, total: cartTotal, clearCart } = useCart();
+  const { 
+    items: cartItems, 
+    total: cartTotal, 
+    clearCart,
+    promoCode: appliedPromo,
+    promoCodeData,
+    discount,
+    shippingDiscount,
+    applyPromoCode,
+    removePromoCode,
+    calculateShippingCost
+  } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [subtotal, setSubtotal] = useState(0);
-  const [discount, setDiscount] = useState(0);
-  const [promoCode, setPromoCode] = useState('');
-  const [promoCodeData, setPromoCodeData] = useState<PromoCodeData | null>(null);
+  const [promoInput, setPromoInput] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [enabledPaymentMethods, setEnabledPaymentMethods] = useState<string[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
@@ -94,76 +104,19 @@ const Checkout = () => {
     }
   };
 
-  const shippingCost = subtotal > 2000 ? 0 : 50;
-  const total = subtotal - discount + shippingCost;
+  const shippingCost = calculateShippingCost(subtotal);
+  // Calculate final total after all discounts
+  const total = Math.max(subtotal + shippingCost - discount, 0);
 
-  const calculateDiscount = (promoCodeData: PromoCodeData | null, subtotal: number) => {
-    if (!promoCodeData) return 0;
-    
-    if (subtotal < promoCodeData.min_cart_total) {
-      return 0;
-    }
-    
-    if (promoCodeData.discount_type === 'percentage') {
-      return Math.min((subtotal * promoCodeData.discount_value) / 100, subtotal);
-    } else {
-      return Math.min(promoCodeData.discount_value, subtotal);
-    }
-  };
-
-  const handlePromoApply = async (code: string) => {
-    try {
-      const { data: validPromoCode, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .eq('code', code)
-        .eq('is_active', true)
-        .single();
-
-      if (error || !validPromoCode) {
-        return false;
-      }
-
-      const minCartTotal = validPromoCode.min_cart_total ?? 0;
-      if (subtotal < minCartTotal) {
-        toast({
-          title: "Minimum order not met",
-          description: `Minimum order of ₹${minCartTotal} required for this promo code`,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      const typedPromoCode: PromoCodeData = {
-        id: validPromoCode.id,
-        code: validPromoCode.code,
-        discount_type: validPromoCode.discount_type,
-        discount_value: validPromoCode.discount_value,
-        min_cart_total: minCartTotal,
-        usage_count: validPromoCode.usage_count ?? 0,
-        usage_limit: validPromoCode.usage_limit,
-        is_active: validPromoCode.is_active ?? true,
-        start_date: validPromoCode.start_date,
-        end_date: validPromoCode.end_date,
-        created_at: validPromoCode.created_at,
-        updated_at: validPromoCode.updated_at,
-      };
-
-      const discountAmount = calculateDiscount(typedPromoCode, subtotal);
-      setDiscount(discountAmount);
-      setPromoCode(code);
-      setPromoCodeData(typedPromoCode);
-      
-      return true;
-    } catch (error) {
-      return false;
-    }
+  const handlePromoApply = async () => {
+    if (!promoInput.trim()) return;
+    await applyPromoCode(promoInput.trim());
+    setPromoInput(''); // Clear input on success
   };
 
   const handlePromoRemove = () => {
-    setDiscount(0);
-    setPromoCode('');
-    setPromoCodeData(null);
+    removePromoCode();
+    setPromoInput('');
   };
 
   const handlePayment = async () => {
@@ -200,38 +153,6 @@ const Checkout = () => {
         return;
       }
       
-      console.log('User authenticated:', session.user.email);
-      console.log('Session valid until:', new Date(session.expires_at! * 1000));
-      
-      // Test database connection first
-      console.log('Testing database connection...');
-      const { data: testData, error: testError } = await supabase
-        .from('orders')
-        .select('id')
-        .limit(1);
-      
-      if (testError) {
-        console.error('Database connection test failed:', testError);
-        throw new Error(`Database connection failed: ${testError.message}`);
-      }
-      
-      console.log('Database connection successful');
-      
-      // Test RLS policies by checking if we can read orders with current user
-      console.log('Testing RLS policies...');
-      const { data: rlsTest, error: rlsError } = await supabase
-        .from('orders')
-        .select('id, customer_email')
-        .eq('customer_email', session.user.email!)
-        .limit(1);
-      
-      if (rlsError) {
-        console.error('RLS test failed:', rlsError);
-        // Continue anyway, this might be expected if no orders exist
-      } else {
-        console.log('RLS test successful, found orders:', rlsTest?.length || 0);
-      }
-      
       // Validate payment method selection
       if (!selectedPaymentMethod) {
         console.log('Payment method validation failed');
@@ -248,8 +169,6 @@ const Checkout = () => {
       const requiredFields = ['name', 'email', 'phone', 'streetAddress', 'city', 'state', 'postalCode', 'country'];
       const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
       
-      console.log('Missing fields:', missingFields);
-      
       if (missingFields.length > 0) {
         console.log('Form validation failed');
         toast({
@@ -263,8 +182,6 @@ const Checkout = () => {
 
       const orderNumber = `ORD-${Date.now().toString().slice(-8)}`;
       
-      console.log('Generated order number:', orderNumber);
-      
       // Create shipping address object
       const shippingAddress = {
         name: formData.name,
@@ -276,10 +193,7 @@ const Checkout = () => {
         phone: formData.phone
       };
 
-      console.log('Shipping address:', shippingAddress);
-
       // Create order record
-      console.log('Creating order record...');
       const orderData = {
         order_number: orderNumber,
         customer_name: formData.name,
@@ -291,10 +205,8 @@ const Checkout = () => {
         discount_amount: discount,
         total_amount: total,
         status: 'pending',
-        payment_status: selectedPaymentMethod === 'Cash on Delivery' ? 'pending' : 'paid'
+        payment_status: selectedPaymentMethod === 'Cash on Delivery' ? 'pending' : 'pending'
       };
-      
-      console.log('Order data to insert:', orderData);
       
       const { data: orderResult, error: orderError } = await supabase
         .from('orders')
@@ -303,125 +215,167 @@ const Checkout = () => {
 
       if (orderError) {
         console.error('Order creation error:', orderError);
-        console.error('Error details:', {
-          message: orderError.message,
-          details: orderError.details,
-          hint: orderError.hint,
-          code: orderError.code
-        });
         throw new Error(`Failed to create order: ${orderError.message}`);
       }
 
-      console.log('Order created successfully:', orderResult);
-      
-      // Get the actual order ID from the created order
       const createdOrderId = orderResult[0]?.id;
       if (!createdOrderId) {
         throw new Error('Failed to get order ID from created order');
       }
 
-      try {
-        // Fetch all product_variants for the products in the cart
-        const { data: variants, error: variantError } = await supabase
-          .from('product_variants')
-          .select('id, product_id, size, color');
-        if (variantError) {
-          throw new Error('Failed to fetch product variants: ' + variantError.message);
+      // Handle different payment methods
+      if (selectedPaymentMethod === 'Razorpay') {
+        try {
+          // Create a Razorpay order first
+          const { data: razorpayOrder, error: razorpayError } = await supabase
+            .from('razorpay_orders')
+            .insert({
+              order_id: createdOrderId,
+              amount: total * 100, // Razorpay expects amount in paise
+              currency: 'INR',
+              status: 'created'
+            })
+            .select()
+            .single();
+
+          if (razorpayError) {
+            throw new Error(`Failed to create Razorpay order: ${razorpayError.message}`);
         }
 
-        // Create order items with variant_id
-        const orderItems = cartItems.map(item => {
-          // Extract the product ID (UUID) from the composite cart item ID
-          const productId = item.id.split('-').slice(0, 5).join('-');
-          console.log('Looking up variant for:', {
-            productId,
-            size: item.selectedSize,
-            color: item.selectedColor,
-            item
+          // Create Razorpay order via API
+          const response = await fetch('http://localhost:8000/api/create-razorpay-order', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              amount: total * 100, // Convert to paise
+              currency: 'INR',
+              receipt: orderNumber,
+            }),
           });
 
-          const variant = variants.find(
-            v =>
-              v.product_id === productId &&
-              v.size === item.selectedSize &&
-              v.color === item.selectedColor
-          );
+          let responseData;
+          try {
+            const textResponse = await response.text();
+            console.log('Raw response:', textResponse); // Debug log
+            responseData = textResponse ? JSON.parse(textResponse) : null;
 
-          if (!variant) {
-            console.error(
-              `No variant found for product ${item.title} (productId: ${productId}, size: ${item.selectedSize}, color: ${item.selectedColor})`
-            );
-            // Log all available variants for debugging
-            console.log('Available variants:', variants);
-            throw new Error(
-              `No variant found for product ${item.title} (size: ${item.selectedSize}, color: ${item.selectedColor})`
-            );
+            if (!response.ok) {
+              const errorMessage = responseData?.error || responseData?.detail || 'Failed to create Razorpay order';
+              console.error('Razorpay API Error:', errorMessage);
+              throw new Error(errorMessage);
+            }
+
+            if (!responseData || !responseData.id) {
+              console.error('Invalid response:', responseData);
+              throw new Error('Invalid Razorpay order response: Missing order ID');
+            }
+
+            // Update the razorpay_order with the Razorpay order ID
+            const { error: updateError } = await supabase
+              .from('razorpay_orders')
+              .update({ razorpay_order_id: responseData.id })
+              .eq('id', razorpayOrder.id);
+
+            if (updateError) {
+              throw new Error(`Failed to update Razorpay order: ${updateError.message}`);
+            }
+
+            // Initialize Razorpay payment
+            initializeRazorpayPayment({
+              amount: total,
+              orderId: responseData.id, // Use the Razorpay order ID from the API
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              onSuccess: async (response) => {
+                try {
+                  // Update order status and payment details
+                  const { error: updateError } = await supabase
+                    .from('orders')
+                    .update({
+                      payment_status: 'paid',
+                      payment_details: response,
+                      status: 'confirmed'
+                    })
+                    .eq('id', createdOrderId);
+
+                  if (updateError) {
+                    console.error('Failed to update order status:', updateError);
+                    toast({
+                      title: "Payment verification failed",
+                      description: "Please contact support with your order number",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Clear cart and redirect
+                  clearCart();
+                  navigate(`/order-success/${orderNumber}`);
+                } catch (error) {
+                  console.error('Error in payment success handler:', error);
+                  toast({
+                    title: "Payment verification failed",
+                    description: "Please contact support with your order number",
+                    variant: "destructive",
+                  });
+                }
+              },
+              onError: async (error) => {
+                console.error('Payment failed:', error);
+                try {
+                  // Update order status to failed
+                  await supabase
+                    .from('orders')
+                    .update({
+                      payment_status: 'failed',
+                      payment_details: error,
+                      status: 'cancelled'
+                    })
+                    .eq('id', createdOrderId);
+
+                  toast({
+                    title: "Payment failed",
+                    description: error.description || "Please try again or choose a different payment method",
+                    variant: "destructive",
+                  });
+                } catch (updateError) {
+                  console.error('Error updating order status:', updateError);
+                  toast({
+                    title: "Payment failed",
+                    description: "Please try again or choose a different payment method",
+                    variant: "destructive",
+                  });
+      }
+              }
+            });
+          } catch (error) {
+            console.error('Error parsing response:', error);
+            throw new Error('Failed to parse Razorpay API response');
           }
-          return {
-            order_id: createdOrderId,
-            product_id: variant.product_id,
-            variant_id: variant.id,
-            product_name: item.title,
-            product_image: item.image,
-            unit_price: item.price,
-            quantity: item.quantity,
-            total_price: item.price * item.quantity
-          };
-        });
-
-        console.log('Order items to create:', orderItems);
-
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems);
-
-        if (itemsError) {
-          console.error('Order items creation error:', itemsError);
-          console.error('Items error details:', {
-            message: itemsError.message,
-            details: itemsError.details,
-            hint: itemsError.hint,
-            code: itemsError.code
+        } catch (error) {
+          console.error('Error initializing Razorpay:', error);
+          toast({
+            title: "Payment initialization failed",
+            description: "Please try again or choose a different payment method",
+            variant: "destructive",
           });
-          // Try to delete the order if items failed
-          await supabase.from('orders').delete().eq('id', createdOrderId);
-          throw new Error(`Failed to create order items: ${itemsError.message}`);
+          throw error; // Re-throw to be caught by the outer try-catch
         }
-
-        console.log('Order items created successfully');
-      } catch (err) {
-        console.error('Error in order item creation:', err);
-        // Optionally, delete the order if order items fail
-        await supabase.from('orders').delete().eq('id', createdOrderId);
-        throw err;
-      }
-
-      // Update promo code usage if applied
-      if (promoCodeData) {
-        console.log('Updating promo code usage...');
-        await supabase
-          .from('promo_codes')
-          .update({ usage_count: promoCodeData.usage_count + 1 })
-          .eq('id', promoCodeData.id);
-      }
-
-      console.log('Payment process completed successfully');
-
-      // Different processing based on payment method
-      const processingTime = selectedPaymentMethod === 'Cash on Delivery' ? 1000 : 2000;
-      const successMessage = selectedPaymentMethod === 'Cash on Delivery' 
-        ? "Order placed successfully! You can pay when your order arrives."
-        : "Payment successful! Redirecting to order confirmation...";
-
-      setTimeout(() => {
+      } else if (selectedPaymentMethod === 'Cash on Delivery') {
+        // Handle COD
         toast({
-          title: "Success!",
-          description: successMessage,
+          title: "Order Placed!",
+          description: "Your order has been placed successfully. You can pay when your order arrives.",
         });
         clearCart();
         navigate(`/order-success/${orderNumber}`);
-      }, processingTime);
+      }
 
+      setIsProcessingPayment(false);
     } catch (error) {
       console.error('Payment error:', error);
       toast({
@@ -561,12 +515,12 @@ const Checkout = () => {
                 <input
                   type="text"
                   placeholder="Enter promo code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
                   className="flex-1 bg-transparent border-b-2 border-gray-600 py-2 px-0 text-white focus:outline-none focus:border-cyan-400 transition-all"
                 />
                 <button
-                  onClick={() => handlePromoApply(promoCode)}
+                  onClick={handlePromoApply}
                   className="px-6 py-2 bg-cyan-400 hover:bg-cyan-500 text-black font-semibold rounded-lg transition-all transform hover:scale-105"
                 >
                   Apply
@@ -574,7 +528,7 @@ const Checkout = () => {
               </div>
               {discount > 0 && (
                 <div className="flex items-center justify-between text-green-400">
-                  <span>Discount Applied: {promoCode}</span>
+                  <span>Discount Applied: {promoInput}</span>
                   <button onClick={handlePromoRemove} className="text-red-400 hover:text-red-300">
                     Remove
                   </button>

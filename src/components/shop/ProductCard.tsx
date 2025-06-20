@@ -3,7 +3,7 @@ import { Eye, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '@/pages/Shop';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { getColorHexCode } from '@/config/colors';
+import { getColorHexCode, getNearestColorFamilyAndShade } from '@/config/colors';
 import { toast } from '@/hooks/use-toast';
 import ProductColorCoverflow from '@/components/ProductColorCoverflow';
 
@@ -27,9 +27,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product: rawProduct, index, o
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  // Determine which images to show based on selected color
+  // Map all product.colors to robust color objects
+  const availableColors = (product.colors || []).map(colorValue => {
+    const hex = colorValue.startsWith('#') ? colorValue : getColorHexCode(colorValue) || colorValue;
+    const nearest = getNearestColorFamilyAndShade(hex);
+    return { hex: nearest.hex, displayName: nearest.displayName, original: colorValue };
+  });
   const colorImages = product.colorImages || {};
-  const availableColors = product.colors || [];
   const imagesToShow = selectedColor && colorImages[selectedColor] && colorImages[selectedColor].length > 0
     ? colorImages[selectedColor]
     : product.images && product.images.length > 0
@@ -78,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product: rawProduct, index, o
       <div className="w-full flex items-center justify-center relative overflow-visible" style={{ maxWidth: 450, height: 900 }}>
         <div className="w-full h-full flex items-center justify-center drop-shadow-2xl">
           <ProductColorCoverflow
-            images={availableColors.map(color => (product.colorImages?.[color]?.[0])).filter(Boolean) as string[]}
+            images={availableColors.map(color => (product.colorImages?.[color.hex]?.[0])).filter(Boolean) as string[]}
             alt={product.title}
             colors={availableColors}
             onColorIndexChange={setCurrentImageIndex}
@@ -103,12 +107,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product: rawProduct, index, o
           <span className="flex gap-2 items-center">
             {availableColors.map((color, cidx) => (
               <button
-                key={color}
+                key={color.hex + color.displayName + color.original}
                 className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${cidx === currentImageIndex ? 'border-white ring-2 ring-white scale-110' : 'border-white/40 opacity-80 hover:scale-105'}`}
-                style={{ backgroundColor: getColorHexCode(color) || undefined }}
-                title={color}
+                style={{ backgroundColor: color.hex }}
+                title={color.displayName}
                 onClick={() => setCurrentImageIndex(cidx)}
-                aria-label={`Select color ${color}`}
+                aria-label={`Select color ${color.displayName}`}
                 type="button"
               />
             ))}

@@ -461,18 +461,19 @@ const Company = () => {
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    className="w-full sm:w-auto"
                   >
                     <Button 
-                      className="group relative h-16 text-xl font-anton overflow-hidden rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02]"
-                      onClick={() => window.location.href = '/products'}
+                      className="group relative h-16 text-xl font-anton overflow-hidden rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02] w-full sm:w-auto"
+                      onClick={() => window.location.href = '/shop'}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-neon-orange via-neon-pink to-neon-cyan p-[2px] transition-all duration-500">
                         <div className="w-full h-full rounded-2xl bg-gradient-to-r from-gray-900/95 via-black to-gray-900/95"></div>
                       </div>
-                      <div className="relative z-10 flex items-center justify-center gap-4 h-full px-10">
-                        <ArrowRight className="h-7 w-7 text-neon-orange group-hover:text-neon-cyan transition-colors duration-300" />
-                        <span className="text-xl font-bold bg-gradient-to-r from-neon-orange via-white to-neon-pink bg-clip-text text-transparent">
+                      <div className="relative z-10 flex items-center justify-center gap-4 h-full px-6 sm:px-10">
+                        <ArrowRight className="h-7 w-7 sm:h-7 sm:w-7 text-neon-orange group-hover:text-neon-cyan transition-colors duration-300" />
+                        <span className="text-xl sm:text-xl font-bold bg-gradient-to-r from-neon-orange via-white to-neon-pink bg-clip-text text-transparent whitespace-nowrap">
                           EXPLORE COLLECTIONS
                         </span>
                       </div>

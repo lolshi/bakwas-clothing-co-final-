@@ -435,7 +435,7 @@ const FAQs = () => {
                   >
                     <Button 
                       className="group relative h-14 text-lg font-anton overflow-hidden rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02]"
-                      onClick={() => window.location.href = '/bakwais'}
+                      onClick={() => window.location.href = '/help'}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink p-[2px] transition-all duration-500">

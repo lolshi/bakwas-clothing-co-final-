@@ -56,6 +56,7 @@ import MobileProductViewTest from './pages/MobileProductViewTest';
 import MobileProductDetailTest from './pages/MobileProductDetailTest';
 import MobileProductDetailTestEnhanced from './pages/MobileProductDetailTestEnhanced';
 import ShopTest from "./pages/ShopTest";
+import TestRazorpay from "./components/TestRazorpay";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,7 @@ const App = () => (
                       <Route path="/mobile-product-detail-test/:productId" element={<MobileProductDetailTest />} />
                       <Route path="/mobile-product-detail-test-enhanced/:productId" element={<MobileProductDetailTestEnhanced />} />
                       <Route path="/ShopTest" element={<ShopTest />} />
+                      <Route path="/test-razorpay" element={<TestRazorpay />} />
                     </Route>
                     
                     {/* Admin Routes - separate from GlobalLayout */}

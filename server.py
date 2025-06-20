@@ -7,24 +7,51 @@ import json
 import os
 from dotenv import load_dotenv
 import logging
+import razorpay
+from fastapi.responses import JSONResponse
+import time
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
 try:
     load_dotenv()
-except UnicodeDecodeError:
-    logging.warning("Failed to load .env file due to UnicodeDecodeError. Continuing without .env.")
+    logger.info("Environment variables loaded successfully")
+    
+    # Get Razorpay credentials
+    razorpay_key_id = os.getenv("RAZORPAY_KEY_ID")
+    razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET")
+    
+    if not razorpay_key_id or not razorpay_key_secret:
+        logger.error("Razorpay credentials not found in environment variables")
+        logger.error("Please ensure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set in .env file")
+        raise ValueError("Razorpay credentials not found")
+        
+    logger.info("Razorpay credentials loaded successfully")
 except Exception as e:
-    logging.warning(f"An unexpected error occurred while loading .env: {e}. Continuing without .env.")
+    logger.error(f"Error loading environment: {str(e)}")
+    raise
 
 app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8082"],
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize Razorpay client
+try:
+    razorpay_client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
+    logger.info("Razorpay client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Razorpay client: {str(e)}")
+    raise
 
 # Grok AI API configuration
 GROK_API_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -43,11 +70,18 @@ class ChatResponse(BaseModel):
     response: str
     usage: dict
 
+class RazorpayOrderRequest(BaseModel):
+    amount: int
+    currency: str
+    receipt: str
+
 @app.get("/health")
 def health_check():
     return {
         "status": "ok",
-        "grok_configured": bool(GROK_API_KEY)
+        "razorpay_configured": bool(razorpay_client),
+        "razorpay_key_id_present": bool(razorpay_key_id),
+        "razorpay_key_secret_present": bool(razorpay_key_secret)
     }
 
 @app.post("/chat", response_model=ChatResponse)
@@ -94,5 +128,96 @@ async def chat(request: ChatRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/create-razorpay-order")
+async def create_razorpay_order(request: RazorpayOrderRequest):
+    logger.info(f"Received order request: {request}")
+    
+    try:
+        # Log the Razorpay client state
+        logger.debug(f"Razorpay client auth check: {bool(razorpay_client.auth)}")
+        
+        order_data = {
+            "amount": request.amount,
+            "currency": request.currency,
+            "receipt": request.receipt,
+            "payment_capture": 1
+        }
+        logger.debug(f"Creating Razorpay order with data: {order_data}")
+        
+        # Create the order
+        order = razorpay_client.order.create(data=order_data)
+        logger.info(f"Razorpay order created successfully: {order}")
+        
+        # Create the response
+        response_data = {
+            "id": order["id"],
+            "amount": order["amount"],
+            "currency": order["currency"],
+            "receipt": order["receipt"],
+            "status": order["status"]
+        }
+        logger.debug(f"Sending response: {response_data}")
+        
+        # Return the response
+        return JSONResponse(
+            status_code=200,
+            content=response_data
+        )
+    except razorpay.errors.BadRequestError as e:
+        error_msg = f"Razorpay BadRequestError: {str(e)}"
+        logger.error(error_msg)
+        return JSONResponse(
+            status_code=400,
+            content={"error": error_msg}
+        )
+    except Exception as e:
+        error_msg = f"Error creating Razorpay order: {str(e)}"
+        logger.error(error_msg)
+        return JSONResponse(
+            status_code=500,
+            content={"error": error_msg}
+        )
+
+@app.get("/test-env")
+async def test_environment():
+    """Test endpoint to verify environment setup"""
+    return {
+        "status": "ok",
+        "razorpay_key_present": bool(razorpay_key_id),
+        "razorpay_secret_present": bool(razorpay_key_secret),
+        "client_initialized": bool(razorpay_client),
+        "key_id_preview": razorpay_key_id[:5] + "..." if razorpay_key_id else None
+    }
+
+@app.get("/test-razorpay")
+async def test_razorpay():
+    """Test endpoint to create a Razorpay order with fixed values"""
+    logger.info("Testing Razorpay order creation with fixed values")
+    try:
+        test_order_data = {
+            "amount": 50000,  # ₹500 in paise
+            "currency": "INR",
+            "receipt": f"test_receipt_{int(time.time())}",  # Unique receipt ID
+            "payment_capture": 1
+        }
+        logger.debug(f"Creating test order with data: {test_order_data}")
+        
+        order = razorpay_client.order.create(data=test_order_data)
+        logger.info(f"Test order created successfully: {order}")
+        
+        return {
+            "success": True,
+            "message": "Razorpay test order created successfully",
+            "order": order
+        }
+    except Exception as e:
+        error_msg = f"Failed to create test order: {str(e)}"
+        logger.error(error_msg)
+        return {
+            "success": False,
+            "message": error_msg,
+            "error": str(e)
+        }
 
 # Note: Don't run the server here, let uvicorn handle it 

@@ -10,18 +10,28 @@ import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const Cart = () => {
-  const { items: cartItems, updateQuantity, removeFromCart, total: cartTotal } = useCart();
+  const { 
+    items: cartItems, 
+    updateQuantity, 
+    removeFromCart, 
+    total: cartTotal,
+    promoCode: appliedPromo,
+    discount,
+    shippingDiscount,
+    applyPromoCode,
+    removePromoCode,
+    calculateShippingCost
+  } = useCart();
   const [promoCode, setPromoCode] = useState('');
-  const [discount, setDiscount] = useState(0);
-  const [appliedPromo, setAppliedPromo] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [productDataMap, setProductDataMap] = useState<Record<string, { sizes: string[] }>>({});
 
   const subtotal = cartTotal;
-  const shippingCost = subtotal > 2000 ? 0 : 50;
-  const total = subtotal - discount + shippingCost;
+  const shippingCost = calculateShippingCost(subtotal);
+  // Calculate final total after all discounts
+  const total = Math.max(subtotal + shippingCost - discount, 0);
 
   // Fetch product data for all cart items
   useEffect(() => {
@@ -58,38 +68,18 @@ const Cart = () => {
     setIsApplyingPromo(true);
     
     try {
-      // Mock promo validation - in real app, this would be an API call
-      const promoDiscounts: { [key: string]: number } = {
-        'SAVE10': subtotal * 0.1,
-        'WELCOME20': subtotal * 0.2,
-        'FIRSTORDER': 500
-      };
-
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-
-      if (promoDiscounts[promoCode.toUpperCase()]) {
-        setDiscount(promoDiscounts[promoCode.toUpperCase()]);
-        setAppliedPromo(promoCode.toUpperCase());
-        toast({
-          title: "Promo code applied!",
-          description: `₹${promoDiscounts[promoCode.toUpperCase()]} discount applied`,
-        });
-      } else {
-        toast({
-          title: "Invalid promo code",
-          description: "Please check your code and try again",
-          variant: "destructive",
-        });
+      const success = await applyPromoCode(promoCode.trim());
+      if (success) {
+        setPromoCode(''); // Clear input on success
       }
-    } catch (error) {
-      toast({
-        title: "Error applying promo code",
-        description: "Please try again",
-        variant: "destructive",
-      });
     } finally {
       setIsApplyingPromo(false);
     }
+  };
+
+  const handlePromoRemove = () => {
+    removePromoCode();
+    setPromoCode('');
   };
 
   const handleCheckout = () => {
@@ -252,101 +242,89 @@ const Cart = () => {
           </div>
 
           {/* Right (col-span-1): Order summary */}
-          <div className="order-summary bg-white/10 backdrop-blur-md rounded-2xl p-6 pb-8 space-y-6 shadow-lg lg:sticky lg:top-8 lg:self-start">
-            <h2 className="text-2xl font-space font-semibold text-white">Order Summary</h2>
-            
-            {/* Promo Code */}
-            <div className="promo">
-              <label className="text-sm text-gray-300 mb-1 block">Promo Code</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Enter code"
+          <div className="lg:col-span-1">
+            <Card className="bg-white/10 border-none text-white">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Promo Code Input */}
+                {!appliedPromo ? (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter promo code"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
-                  disabled={isApplyingPromo}
-                  className="w-full bg-transparent border border-gray-600 rounded-lg py-2 px-4 pr-24 text-white focus:outline-none focus:border-neon-cyan transition-colors placeholder-gray-400"
+                      className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
                 />
-                <button
+                    <Button
                   onClick={handlePromoApply}
-                  disabled={!promoCode.trim() || isApplyingPromo}
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    right: '6px',
-                    transform: 'translateY(-50%)',
-                    background: 'linear-gradient(to right, #00F0FF, #FF00D4, #FFA500)',
-                    color: '#ffffff',
-                    fontWeight: '600',
-                    borderRadius: '9999px',
-                    paddingLeft: '20px',
-                    paddingRight: '20px',
-                    paddingTop: '8px',
-                    paddingBottom: '8px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    transition: 'all 0.3s ease',
-                    border: 'none',
-                    cursor: 'pointer',
-                    opacity: (!promoCode.trim() || isApplyingPromo) ? 0.5 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!(!promoCode.trim() || isApplyingPromo)) {
-                      e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
-                      e.currentTarget.style.opacity = '0.95';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!(!promoCode.trim() || isApplyingPromo)) {
-                      e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-                      e.currentTarget.style.opacity = '1';
-                    }
-                  }}
+                      disabled={isApplyingPromo || !promoCode.trim()}
+                      className="bg-neon-cyan text-black hover:bg-neon-cyan/80 whitespace-nowrap"
                 >
                   {isApplyingPromo ? (
-                    <Loader2 style={{ width: '16px', height: '16px', color: '#ffffff' }} className="animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <span style={{ color: '#ffffff' }}>Apply</span>
+                        'Apply'
                   )}
-                </button>
+                    </Button>
               </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-white/5 p-2 rounded">
+                    <span className="text-sm">Code: {appliedPromo}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePromoRemove}
+                      className="text-white hover:text-red-400"
+                    >
+                      Remove
+                    </Button>
             </div>
+                )}
 
-            {/* Totals */}
-            <div className="totals space-y-2 text-right">
-              <div className="flex justify-between text-gray-300">
+                {/* Summary Details */}
+                <div className="space-y-2 pt-4">
+                  <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>₹{subtotal.toLocaleString()}</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              
               {discount > 0 && (
                 <div className="flex justify-between text-neon-cyan">
-                  <span>Discount ({appliedPromo})</span>
-                  <span>-₹{discount.toLocaleString()}</span>
+                      <span>Discount</span>
+                      <span>-₹{discount.toFixed(2)}</span>
                 </div>
               )}
-              
-              <div className="flex justify-between text-gray-300">
+                  <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+                    <div className="text-right">
+                      {shippingDiscount ? (
+                        <>
+                          <span className="line-through text-gray-400 mr-2">₹50</span>
+                          <span className="text-neon-cyan">Free</span>
+                        </>
+                      ) : (
+                        <span>{shippingCost > 0 ? `₹${shippingCost.toFixed(2)}` : 'Free'}</span>
+                      )}
+                    </div>
               </div>
-              
-              <hr className="border-gray-600"/>
-              
-              <div className="flex justify-between text-white font-semibold text-lg">
+                  <div className="border-t border-white/20 pt-2 mt-2">
+                    <div className="flex justify-between font-semibold">
                 <span>Total</span>
-                <span>₹{total.toLocaleString()}</span>
+                      <span>₹{total.toFixed(2)}</span>
+                    </div>
               </div>
             </div>
 
-            <button
+                {/* Checkout Button */}
+                <Button
               onClick={handleCheckout}
-              disabled={cartItems.length === 0}
-              className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-3xl shadow-inner hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-4 bg-neon-cyan text-black hover:bg-neon-cyan/80"
             >
               Proceed to Checkout
-            </button>
-            
-            <p className="text-xs text-gray-500 text-center">Secure checkout powered by Razorpay</p>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}

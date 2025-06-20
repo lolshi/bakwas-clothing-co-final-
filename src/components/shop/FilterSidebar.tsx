@@ -12,6 +12,8 @@ import { useAvailableColorsFromVariants } from '@/hooks/useAvailableColorsFromVa
 interface FilterSidebarProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  minPrice: number;
+  maxPrice: number;
 }
 
 const categories = [
@@ -47,9 +49,9 @@ const colours = [
 
 const sortOptions = [
   { value: 'newest', label: 'Newest' },
-  { value: 'price-low', label: 'Price: Low → High' },
-  { value: 'price-high', label: 'Price: High → Low' },
-  { value: 'best-selling', label: 'Best Selling' }
+  { value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' },
+  { value: 'popular', label: 'Most Popular' }
 ];
 
 // Add CSS optimizations at the top of the file after imports
@@ -85,17 +87,26 @@ const debugLog = (...args: any[]) => {
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({ 
   filters, 
   onFiltersChange,
+  minPrice,
+  maxPrice
 }) => {
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const [priceValues, setPriceValues] = useState(filters.priceRange);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
-  const { colors: availableColors, loading: colorsLoading } = useAvailableColorsFromVariants();
+  const { colors: availableColors, loading: colorsLoading } = useAvailableColorsFromVariants({
+    sizes: filters.sizes,
+    priceRange: filters.priceRange,
+    // categories: filters.categories, // To fully support, would require a join with products table
+  });
   const sliderRef = useRef<HTMLDivElement>(null);
   const popoverRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Debounced filter update
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback((newFilters: FilterState) => {
+    if (typeof window !== 'undefined') {
+      console.log('[FilterSidebar] onFiltersChange', newFilters);
+    }
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
@@ -173,7 +184,9 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   const handleSortChange = (value: string) => {
+    console.log('Applying sort:', value);
     handleFilterChange({ ...filters, sortBy: value });
+    setOpenPopover(null); // Close the popover after selection
   };
 
   const clearFilter = (filterType: string, value?: string) => {
@@ -282,7 +295,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="popover-panel absolute mt-2 bg-[#14141a] rounded-lg shadow-xl border border-gray-700/50 p-4 w-64 max-h-80 overflow-y-auto z-30"
+            className="popover-panel absolute mt-2 bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl p-6 rounded-2xl w-80 max-h-[28rem] overflow-y-auto z-50"
+            tabIndex={-1}
+            onKeyDown={e => { if (e.key === 'Escape') setOpenPopover(null); }}
+            style={{
+              boxShadow: '0 8px 32px 0 rgba(255,0,204,0.18), 0 1.5px 8px 0 rgba(51,51,153,0.10)',
+              border: '1.5px solid rgba(255,255,255,0.12)',
+            }}
           >
             {children}
           </motion.div>
@@ -345,40 +364,72 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   );
 
   const PriceSlider = () => {
-    const MIN_PRICE = priceValues[0];
-    const MAX_PRICE = priceValues[1];
+    // Use dynamic min/max for the slider
+    const MIN_PRICE = minPrice;
+    const MAX_PRICE = maxPrice;
     const [localMin, setLocalMin] = useState(priceValues[0]);
     const [localMax, setLocalMax] = useState(priceValues[1]);
-    const [isDraggingLocal, setIsDraggingLocal] = useState<'min' | 'max' | null>(null);
+    // Use local string state for input values
+    const [localMinInput, setLocalMinInput] = useState(priceValues[0].toString());
+    const [localMaxInput, setLocalMaxInput] = useState(priceValues[1].toString());
+    const [inputFocus, setInputFocus] = useState<'min' | 'max' | null>(null);
     
-    // Update local state when props change
     useEffect(() => {
       setLocalMin(priceValues[0]);
       setLocalMax(priceValues[1]);
+      setLocalMinInput(priceValues[0].toString());
+      setLocalMaxInput(priceValues[1].toString());
     }, [priceValues]);
 
     const minPercent = ((localMin - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
     const maxPercent = ((localMax - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
 
-    // Debounced update to parent
+    // Only update parent on blur or Enter
     const updateParent = (min: number, max: number) => {
       handlePriceChange(min, max);
+      if (typeof window !== 'undefined') {
+        console.log('[FilterSidebar] PriceSlider updateParent', min, max);
+      }
     };
 
-    // Handle number input changes
+    // Handle number input changes (local string only)
     const handleNumberInputChange = (type: 'min' | 'max', value: string) => {
-      const numValue = parseInt(value) || (type === 'min' ? MIN_PRICE : MAX_PRICE);
-      const clampedValue = Math.max(MIN_PRICE, Math.min(MAX_PRICE, numValue));
-      
       if (type === 'min') {
-        const newMin = Math.min(clampedValue, localMax - 1);
-        setLocalMin(newMin);
-        updateParent(newMin, localMax);
+        setLocalMinInput(value);
       } else {
-        const newMax = Math.max(clampedValue, localMin + 1);
-        setLocalMax(newMax);
-        updateParent(localMin, newMax);
+        setLocalMaxInput(value);
       }
+    };
+
+    // Commit value on blur or Enter
+    const handleInputCommit = (type: 'min' | 'max') => {
+      if (type === 'min') {
+        const parsed = parseInt(localMinInput, 10);
+        const clamped = isNaN(parsed) ? MIN_PRICE : Math.max(MIN_PRICE, Math.min(MAX_PRICE, parsed));
+        setLocalMin(clamped);
+        setLocalMinInput(clamped.toString());
+        updateParent(clamped, localMax);
+      } else {
+        const parsed = parseInt(localMaxInput, 10);
+        const clamped = isNaN(parsed) ? MAX_PRICE : Math.max(localMin + 1, Math.min(MAX_PRICE, parsed));
+        setLocalMax(clamped);
+        setLocalMaxInput(clamped.toString());
+        updateParent(localMin, clamped);
+      }
+      setInputFocus(null);
+    };
+
+    // Handle Enter key
+    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: 'min' | 'max') => {
+      if (e.key === 'Enter') {
+        handleInputCommit(type);
+        (e.target as HTMLInputElement).blur();
+      }
+    };
+
+    // Prevent popover from closing while interacting
+    const stopPropagation = (e: React.MouseEvent | React.FocusEvent) => {
+      e.stopPropagation();
     };
 
     // Handle range slider changes
@@ -399,33 +450,33 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     // Handle visual thumb dragging
     const handleThumbMouseDown = (type: 'min' | 'max') => (e: React.MouseEvent) => {
       e.preventDefault();
-      setIsDraggingLocal(type);
+      setIsDragging(type);
     };
 
     const handleThumbMouseMove = useCallback((e: MouseEvent) => {
-      if (!isDraggingLocal || !sliderRef.current) return;
+      if (!isDragging || !sliderRef.current) return;
       
       const rect = sliderRef.current.getBoundingClientRect();
       const percentage = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const value = Math.round(MIN_PRICE + percentage * (MAX_PRICE - MIN_PRICE));
       
-      if (isDraggingLocal === 'min') {
+      if (isDragging === 'min') {
         const newMin = Math.min(value, localMax - 1);
         setLocalMin(newMin);
         updateParent(newMin, localMax);
-      } else if (isDraggingLocal === 'max') {
+      } else if (isDragging === 'max') {
         const newMax = Math.max(value, localMin + 1);
         setLocalMax(newMax);
         updateParent(localMin, newMax);
       }
-    }, [isDraggingLocal, localMin, localMax]);
+    }, [isDragging, localMin, localMax]);
 
     const handleThumbMouseUp = useCallback(() => {
-      setIsDraggingLocal(null);
+      setIsDragging(null);
     }, []);
 
     useEffect(() => {
-      if (isDraggingLocal) {
+      if (isDragging) {
         document.addEventListener('mousemove', handleThumbMouseMove);
         document.addEventListener('mouseup', handleThumbMouseUp);
         return () => {
@@ -433,151 +484,119 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           document.removeEventListener('mouseup', handleThumbMouseUp);
         };
       }
-    }, [isDraggingLocal, handleThumbMouseMove, handleThumbMouseUp]);
+    }, [isDragging, handleThumbMouseMove, handleThumbMouseUp]);
 
     return (
-      <div className="space-y-6 min-h-0 w-full">
-        {/* Interactive Price Range Display */}
-        <div className="text-center min-h-0 w-full">
-          <div className="flex items-center justify-center gap-2 mb-1 min-h-0 w-full">
-            <div className="relative min-h-0">
+      <div className="space-y-6 min-h-0 w-full" onMouseDown={stopPropagation} onFocus={stopPropagation}>
+        {/* Glassy Card for Price Range */}
+        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl px-6 py-6 flex flex-col items-center gap-4 w-full overflow-hidden" style={{ minWidth: 260, maxWidth: 340, margin: '0 auto' }}>
+          {/* Price Range Display */}
+          <div className="flex items-center justify-center gap-3 mb-2 w-full">
+            <div className="relative">
               <span className="absolute left-1 top-1/2 transform -translate-y-1/2 text-lg font-semibold text-neon-cyan pointer-events-none">₹</span>
               <input
                 type="number"
-                className="bg-transparent text-lg font-semibold text-white text-center border-b border-transparent hover:border-neon-cyan focus:border-neon-cyan focus:outline-none w-24 pl-6 pr-2 py-1 transition-all cursor-pointer min-h-0"
-                value={localMin}
+                className="bg-transparent text-lg font-semibold text-white text-right border-b border-transparent hover:border-neon-cyan focus:border-neon-cyan focus:outline-none w-24 min-w-[70px] pl-6 pr-2 py-1 transition-all cursor-pointer rounded-md"
+                value={inputFocus === 'min' ? localMinInput : localMin.toString()}
                 min={MIN_PRICE}
                 max={MAX_PRICE}
                 onChange={(e) => handleNumberInputChange('min', e.target.value)}
-                onFocus={(e) => e.target.select()}
-                placeholder="299"
+                onFocus={() => setInputFocus('min')}
+                onBlur={() => handleInputCommit('min')}
+                onKeyDown={e => handleInputKeyDown(e, 'min')}
+                placeholder={MIN_PRICE.toString()}
                 title="Click to edit minimum price"
+                style={{ background: 'rgba(255,255,255,0.08)' }}
               />
             </div>
             <span className="text-lg font-semibold text-white mx-2">-</span>
-            <div className="relative min-h-0">
+            <div className="relative">
               <span className="absolute left-1 top-1/2 transform -translate-y-1/2 text-lg font-semibold text-neon-pink pointer-events-none">₹</span>
               <input
                 type="number"
-                className="bg-transparent text-lg font-semibold text-white text-center border-b border-transparent hover:border-neon-pink focus:border-neon-pink focus:outline-none w-24 pl-6 pr-2 py-1 transition-all cursor-pointer min-h-0"
-                value={localMax}
+                className="bg-transparent text-lg font-semibold text-white text-right border-b border-transparent hover:border-neon-pink focus:border-neon-pink focus:outline-none w-24 min-w-[70px] pl-6 pr-2 py-1 transition-all cursor-pointer rounded-md"
+                value={inputFocus === 'max' ? localMaxInput : localMax.toString()}
                 min={MIN_PRICE}
                 max={MAX_PRICE}
                 onChange={(e) => handleNumberInputChange('max', e.target.value)}
-                onFocus={(e) => e.target.select()}
-                placeholder="1499"
+                onFocus={() => setInputFocus('max')}
+                onBlur={() => handleInputCommit('max')}
+                onKeyDown={e => handleInputKeyDown(e, 'max')}
+                placeholder={MAX_PRICE.toString()}
                 title="Click to edit maximum price"
+                style={{ background: 'rgba(255,255,255,0.08)' }}
               />
             </div>
           </div>
-          <div className="text-xs text-gray-400 min-h-0 w-full">
-            Click to edit price range
-          </div>
-        </div>
-        {/* Number Inputs */}
-        <div className="flex items-center gap-4 min-h-0 w-full">
-          <div className="flex-1 min-h-0">
-            <label htmlFor="minPriceInput" className="block text-xs text-gray-400 mb-2 min-h-0">
-              Minimum Price
-            </label>
-            <input
-              type="number"
-              id="minPriceInput"
-              name="minPriceInput"
-              className="w-full bg-white/10 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:border-neon-cyan focus:bg-white/15 transition-all min-h-0"
-              min={MIN_PRICE}
-              max={MAX_PRICE}
-              step="1"
-              value={localMin}
-              onChange={(e) => handleNumberInputChange('min', e.target.value)}
-              onBlur={(e) => {
-                if (!e.target.value) {
-                  setLocalMin(MIN_PRICE);
-                  updateParent(MIN_PRICE, localMax);
-                }
-              }}
-            />
-          </div>
-          <div className="text-gray-400 mt-6 min-h-0">-</div>
-          <div className="flex-1 min-h-0">
-            <label htmlFor="maxPriceInput" className="block text-xs text-gray-400 mb-2 min-h-0">
-              Maximum Price
-            </label>
-            <input
-              type="number"
-              id="maxPriceInput"
-              name="maxPriceInput"
-              className="w-full bg-white/10 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:border-neon-cyan focus:bg-white/15 transition-all min-h-0"
-              min={MIN_PRICE}
-              max={MAX_PRICE}
-              step="1"
-              value={localMax}
-              onChange={(e) => handleNumberInputChange('max', e.target.value)}
-              onBlur={(e) => {
-                if (!e.target.value) {
-                  setLocalMax(MAX_PRICE);
-                  updateParent(localMin, MAX_PRICE);
-                }
-              }}
-            />
-          </div>
-        </div>
-        {/* Dual Range Slider */}
-        <div className="relative min-h-0 w-full h-auto">
-          <div className="relative px-2 min-h-0 w-full h-auto" ref={sliderRef}>
-            {/* Background Track */}
-            <div className="absolute top-1/2 left-2 right-2 h-2 bg-gray-700 rounded-full transform -translate-y-1/2 min-h-0 w-auto" />
+          <div className="text-xs text-gray-300 mb-2 w-full text-center">Click or drag to set price range</div>
+          {/* Minimal Glassy Slider */}
+          <div className="relative w-full h-10 flex items-center px-7 overflow-hidden" style={{ minWidth: 200, maxWidth: 300 }} ref={sliderRef}>
+            {/* Glassy Track */}
+            <div className="absolute top-1/2 left-0 right-0 h-3 bg-white/20 backdrop-blur-sm rounded-full shadow-inner -translate-y-1/2" />
             {/* Active Track */}
             <div 
-              className="absolute top-1/2 h-2 bg-gradient-to-r from-neon-cyan to-neon-pink rounded-full transform -translate-y-1/2 transition-all duration-200 min-h-0 w-auto"
+              className="absolute top-1/2 h-3 bg-gradient-to-r from-neon-cyan to-neon-pink rounded-full shadow-lg -translate-y-1/2 transition-all duration-200"
               style={{ 
-                left: `calc(${minPercent}% + 8px)`, 
-                width: `calc(${maxPercent - minPercent}% - 16px)` 
+                left: `${minPercent}%`,
+                width: `${maxPercent - minPercent}%`
               }}
             />
             {/* Range Inputs (Hidden but functional) */}
             <input
               type="range"
-              className="absolute w-full h-10 opacity-0 cursor-pointer z-10 min-h-0"
+              className="absolute w-full h-10 opacity-0 cursor-pointer z-10"
               min={MIN_PRICE}
               max={MAX_PRICE}
               step="1"
               value={localMin}
-              onChange={(e) => handleRangeChange('min', e.target.value)}
-              style={{ pointerEvents: 'auto' }}
+              onChange={e => {
+                const value = Math.min(Number(e.target.value), localMax - 1);
+                setLocalMin(value);
+              }}
+              onMouseUp={() => updateParent(localMin, localMax)}
+              onTouchEnd={() => updateParent(localMin, localMax)}
             />
             <input
               type="range"
-              className="absolute w-full h-10 opacity-0 cursor-pointer z-10 min-h-0"
+              className="absolute w-full h-10 opacity-0 cursor-pointer z-10"
               min={MIN_PRICE}
               max={MAX_PRICE}
               step="1"
               value={localMax}
-              onChange={(e) => handleRangeChange('max', e.target.value)}
-              style={{ pointerEvents: 'auto' }}
+              onChange={e => {
+                const value = Math.max(Number(e.target.value), localMin + 1);
+                setLocalMax(value);
+              }}
+              onMouseUp={() => updateParent(localMin, localMax)}
+              onTouchEnd={() => updateParent(localMin, localMax)}
             />
-            {/* Visual Thumbs */}
+            {/* Thumbs */}
             <div 
-              className={`absolute w-6 h-6 bg-neon-cyan rounded-full border-3 border-white cursor-grab transform -translate-x-1/2 -translate-y-1/2 top-1/2 z-20 shadow-lg transition-all duration-200 min-h-0 w-6 h-6`}
-              style={{ left: `calc(${minPercent}% + 8px)` }}
+              className="absolute top-1/2 left-0 z-20"
+              style={{ left: `${minPercent}%`, transform: 'translate(-50%, -50%)' }}
               onMouseDown={handleThumbMouseDown('min')}
-              title={`Min: ₹${localMin}`}
+              tabIndex={0}
+              role="slider"
+              aria-valuenow={localMin}
+              aria-valuemin={MIN_PRICE}
+              aria-valuemax={localMax - 1}
+              aria-label="Minimum price"
             >
-              <div className="absolute inset-1 bg-white rounded-full opacity-30 min-h-0" />
+              <div className="w-6 h-6 rounded-full bg-white/70 border-2 border-white shadow-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-2xl" style={{ backdropFilter: 'blur(2px)' }} />
             </div>
             <div 
-              className={`absolute w-6 h-6 bg-neon-pink rounded-full border-3 border-white cursor-grab transform -translate-x-1/2 -translate-y-1/2 top-1/2 z-20 shadow-lg transition-all duration-200 min-h-0 w-6 h-6`}
-              style={{ left: `calc(${maxPercent}% + 8px)` }}
+              className="absolute top-1/2 left-0 z-20"
+              style={{ left: `${maxPercent}%`, transform: 'translate(-50%, -50%)' }}
               onMouseDown={handleThumbMouseDown('max')}
-              title={`Max: ₹${localMax}`}
+              tabIndex={0}
+              role="slider"
+              aria-valuenow={localMax}
+              aria-valuemin={localMin + 1}
+              aria-valuemax={MAX_PRICE}
+              aria-label="Maximum price"
             >
-              <div className="absolute inset-1 bg-white rounded-full opacity-30 min-h-0" />
+              <div className="w-6 h-6 rounded-full bg-white/70 border-2 border-white shadow-xl cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-2xl" style={{ backdropFilter: 'blur(2px)' }} />
             </div>
-          </div>
-          {/* Price Labels */}
-          <div className="flex justify-between text-xs text-gray-400 mt-2 px-2 min-h-0 w-full">
-            <span>₹{MIN_PRICE.toLocaleString()}</span>
-            <span>₹{MAX_PRICE.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -622,145 +641,165 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   return (
     <div className="w-full">
-      {/* Filter Bar */}
-      <div className="flex justify-center sticky top-16 z-20">
-        <div className="filter-bar-container max-w-4xl w-full mx-auto">
-          <div className="filter-bar bg-black bg-opacity-60 backdrop-blur-sm px-6 py-2 rounded-full flex justify-center items-center space-x-6 border border-gray-700/30">
-            {/* Sort Popover */}
-            <FilterPopover 
-              name="sort" 
-              label="Sort" 
-              hasActiveFilters={filters.sortBy !== 'newest'}
-            >
-              <div className="space-y-2">
-                <h4 className="popover-title">Sort By</h4>
+      {/* Modern Filter Bar */}
+      <div className="flex justify-center sticky top-16 z-50 mb-8">
+        <div className="filter-bar-container max-w-5xl w-full mx-auto">
+          <div className="filter-bar bg-black/80 backdrop-blur-md px-6 py-3 rounded-2xl flex justify-center items-center gap-4 border border-gray-700/30 shadow-2xl" style={{marginBottom: '1.5rem'}}>
+            {/* Pill-shaped filter buttons with badges */}
+            {[
+              { name: 'sort', label: 'Sort', active: filters.sortBy !== 'newest' },
+              { name: 'categories', label: 'Categories', active: filters.categories.length > 0 },
+              { name: 'sizes', label: 'Size', active: filters.sizes.length > 0 },
+              { name: 'colors', label: 'Colours', active: filters.colors.length > 0 },
+              { name: 'price', label: 'Price', active: filters.priceRange[0] !== 0 || filters.priceRange[1] !== 10000 },
+            ].map(btn => (
+              <div key={btn.name} className="relative">
+                <button
+                  onClick={() => togglePopover(btn.name)}
+                  className={`px-5 py-2 rounded-full font-semibold text-base transition-all border border-white/10 shadow-sm flex items-center gap-2 bg-white/10 hover:bg-white/20 focus:outline-none ${btn.active ? 'ring-2 ring-neon-pink text-neon-pink' : 'text-white'}`}
+                  aria-pressed={openPopover === btn.name}
+                  aria-label={btn.label}
+                >
+                  {btn.label}
+                  {btn.active && <span className="ml-1 bg-neon-pink text-black text-xs px-2 py-0.5 rounded-full font-bold">•</span>}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openPopover === btn.name ? 'rotate-180' : ''}`} />
+                </button>
+                {/* Popover Panel */}
+                <AnimatePresence>
+                  {openPopover === btn.name && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="popover-panel absolute left-0 mt-2 bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl p-6 rounded-2xl w-80 max-h-[28rem] overflow-y-auto z-50"
+                      tabIndex={-1}
+                      onKeyDown={e => { if (e.key === 'Escape') setOpenPopover(null); }}
+                      style={{
+                        boxShadow: '0 8px 32px 0 rgba(255,0,204,0.18), 0 1.5px 8px 0 rgba(51,51,153,0.10)',
+                        border: '1.5px solid rgba(255,255,255,0.12)',
+                      }}
+                    >
+                      {/* Render the correct filter content here, e.g. Sort, Categories, etc. */}
+                      {btn.name === 'sort' && (
+                        <div className="space-y-3">
                 {sortOptions.map(option => (
-                  <label key={option.value} className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded transition-colors">
+                            <button
+                              key={option.value}
+                              className={`w-full text-left px-5 py-3 rounded-xl font-semibold text-lg transition-all border border-transparent hover:bg-white/10 focus:outline-none ${filters.sortBy === option.value ? 'bg-neon-pink/20 text-neon-pink border-neon-pink' : 'text-white'}`}
+                              onClick={() => { handleSortChange(option.value); setOpenPopover(null); }}
+                              aria-pressed={filters.sortBy === option.value}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {btn.name === 'categories' && (
+                        <div className="space-y-3">
+                          {categories.map(category => (
+                            <label key={category.id} className="flex items-center gap-4 cursor-pointer hover:bg-white/5 p-3 rounded-xl transition-colors text-lg">
                     <input
-                      type="radio"
-                      name="sort"
-                      value={option.value}
-                      checked={filters.sortBy === option.value}
-                      onChange={(e) => handleSortChange(e.target.value)}
+                                type="checkbox"
+                                checked={filters.categories.includes(category.id)}
+                                onChange={e => handleCategoryChange(category.id, e.target.checked)}
                       className="sr-only"
                     />
-                    <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${
-                      filters.sortBy === option.value 
-                        ? 'border-neon-cyan bg-neon-cyan' 
-                        : 'border-white/40'
-                    }`}>
-                      {filters.sortBy === option.value && (
-                        <div className="w-1 h-1 bg-black rounded-full m-auto mt-0.5" />
-                      )}
-                    </span>
-                    <span className="text-white text-sm">{option.label}</span>
+                              <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${filters.categories.includes(category.id) ? 'border-neon-cyan bg-neon-cyan' : 'border-white/40 hover:border-white/60'}`}></span>
+                              <span className="text-white">{category.label}</span>
                   </label>
                 ))}
               </div>
-            </FilterPopover>
-
-            {/* Categories Popover */}
-            <FilterPopover 
-              name="categories" 
-              label="Categories" 
-              hasActiveFilters={filters.categories.length > 0}
-            >
-              <div className="space-y-2">
-                <h4 className="popover-title">Categories</h4>
-                {categories.map(category => (
-                  <CircularCheckbox
-                    key={category.id}
-                    id={category.id}
-                    checked={filters.categories.includes(category.id)}
-                    onChange={(checked) => handleCategoryChange(category.id, checked)}
-                    label={category.label}
-                  />
+                      )}
+                      {btn.name === 'sizes' && (
+                        <div className="flex flex-wrap gap-3">
+                          {sizes.map(size => (
+                            <button
+                              key={size}
+                              onClick={() => handleSizeChange(size, !filters.sizes.includes(size))}
+                              className={`px-4 py-2 rounded-xl text-base font-bold border transition-all ${filters.sizes.includes(size) ? 'bg-neon-pink text-black border-neon-pink' : 'bg-[#181824] text-white border-gray-700 hover:bg-neon-pink/10'}`}
+                              aria-pressed={filters.sizes.includes(size)}
+                            >
+                              {size}
+                            </button>
                 ))}
               </div>
-            </FilterPopover>
-
-            {/* Sizes Popover */}
-            <FilterPopover 
-              name="sizes" 
-              label="Size" 
-              hasActiveFilters={filters.sizes.length > 0}
-            >
-              <div className="space-y-2">
-                <h4 className="popover-title">Size</h4>
-                {sizes.map(size => (
-                  <CircularCheckbox
-                    key={size}
-                    id={size}
-                    checked={filters.sizes.includes(size)}
-                    onChange={(checked) => handleSizeChange(size, checked)}
-                    label={size}
-                  />
-                ))}
+                      )}
+                      {btn.name === 'colors' && (
+                        <div className="grid grid-cols-6 gap-4 py-2">
+                          {availableColors.length === 0 && (
+                            <div className="col-span-6 text-center py-8">
+                              <p className="text-gray-400 text-sm">No colors found. (Check if your product_variants table has color hex codes.)</p>
               </div>
-            </FilterPopover>
-
-            {/* Colors Popover */}
-            <FilterPopover 
-              name="colors" 
-              label="Colours" 
-              hasActiveFilters={filters.colors.length > 0}
-            >
-              <div className="space-y-4">
-                <h4 className="popover-title">Colours</h4>
-                {/* Color Swatches */}
-                <div className="grid grid-cols-6 gap-2">
-                  {availableColors.map(color => (
+                          )}
+                          {availableColors.map(color => {
+                            // Robust: support both hex and color names in filter
+                            const isSelected = filters.colors.map(c => c.toLowerCase()).includes(color.hex.toLowerCase()) ||
+                              filters.colors.map(c => c.toLowerCase()).includes(color.displayName.toLowerCase());
+                            return (
                     <button
                       key={color.hex}
-                      onClick={() => handleColorChange(color.hex, !filters.colors.includes(color.hex))}
-                      className={`relative w-6 h-6 rounded-full border-2 transition-all group ${
-                        filters.colors.includes(color.hex)
-                          ? 'border-neon-pink shadow-[0_0_8px_rgba(236,72,153,0.6)]'
-                          : 'border-white/30 hover:border-white/60'
-                      }`}
+                                onClick={() => handleColorChange(color.hex, !isSelected)}
+                                className={`relative w-10 h-10 rounded-full border-2 transition-all group flex items-center justify-center
+                                  ${isSelected ? 'border-neon-pink shadow-[0_0_12px_rgba(236,72,153,0.7)]' : 'border-white/30 hover:border-white/60'}`}
                       style={{ backgroundColor: color.hex }}
+                                aria-pressed={isSelected}
                       title={color.displayName}
-                      aria-pressed={filters.colors.includes(color.hex)}
-                    >
+                              >
+                                {isSelected && (
+                                  <span className="absolute inset-0 flex items-center justify-center">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" className="text-neon-pink" fill="none">
+                                      <circle cx="10" cy="10" r="8" stroke="white" strokeWidth="2" />
+                                      <path d="M6 10.5l2.5 2.5L14 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </span>
+                                )}
+                                <span className="sr-only">{color.displayName}</span>
                       {/* Tooltip */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity z-50">
                         {color.displayName}
                       </div>
                     </button>
-                  ))}
-                  {availableColors.length === 0 && !colorsLoading && (
-                    <div className="col-span-6 text-center py-8">
-                      <p className="text-gray-400 text-sm">No colors found</p>
+                            );
+                          })}
                     </div>
                   )}
-                  {colorsLoading && (
-                    <div className="col-span-6 text-center py-8">
-                      <p className="text-gray-400 text-sm">Loading colors...</p>
-                    </div>
+                      {btn.name === 'price' && (
+                        <PriceSlider />
+                      )}
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
               </div>
-            </FilterPopover>
-
-            {/* Price Popover */}
-            <FilterPopover 
-              name="price" 
-              label="Price" 
-              hasActiveFilters={filters.priceRange[0] !== 0 || filters.priceRange[1] !== 10000}
-            >
-              <div className="space-y-4">
-                <h4 className="popover-title">Price Range</h4>
-                <PriceSlider />
-              </div>
-            </FilterPopover>
+            ))}
           </div>
         </div>
       </div>
-
-      {/* Active Filters */}
-      <div className="mt-4">
-        <FilterBadges />
+      {/* Active Filters as chips below the bar */}
+      <div className="flex flex-wrap items-center gap-2 mb-12 justify-center">
+        {getActiveFilters().map((filter, index) => (
+          <div key={`${filter.type}-${filter.value || filter.label}`} className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full px-4 py-1 text-base text-white shadow">
+            <span>{filter.label}</span>
+            <button
+              onClick={() => clearFilter(filter.type, filter.value)}
+              className="text-white/60 hover:text-neon-pink transition-colors ml-1"
+              aria-label={`Remove ${filter.label} filter`}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+        {getActiveFilters().length > 0 && (
+          <button
+            onClick={() => clearFilter('all')}
+            className="text-base text-neon-cyan hover:text-neon-pink transition-colors underline ml-4"
+          >
+            Clear All
+          </button>
+        )}
       </div>
+      {/* Spacer before product grid */}
+      <div className="w-full" style={{marginTop: '2rem'}} />
     </div>
   );
 };

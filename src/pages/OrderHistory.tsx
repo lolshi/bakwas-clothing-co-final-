@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { downloadInvoice } from '@/utils/invoiceGenerator';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { motion } from 'framer-motion';
 
 interface Order {
   id: string;
@@ -186,109 +187,202 @@ const OrderHistory = () => {
         }}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <div className="bg-black/60 backdrop-blur-md rounded-lg p-4 md:p-6 mb-6">
-              <h1 className="text-xl md:text-3xl font-anton mb-2 text-white">Order History</h1>
-              <p className="text-gray-300 text-sm md:text-base">View your past orders and their status</p>
+          <div className="mb-4 sm:mb-8">
+            <div className="bg-black/60 backdrop-blur-md rounded-lg p-4 md:p-6 mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-anton mb-2 sm:mb-3 text-white bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">Order History</h1>
+              <p className="text-gray-300 text-sm sm:text-base">View your past orders and their status</p>
+            </div>
+            
+            {/* Search input for both mobile and desktop */}
+            <div className="bg-black/60 backdrop-blur-md rounded-lg p-3 sm:p-4">
+              <Input
+                type="text"
+                placeholder="Search by order number"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-white/10 text-white border border-white/20 rounded-lg px-3 py-2 text-sm sm:text-base placeholder:text-white/50"
+              />
             </div>
           </div>
 
-          {/* Mobile: Card layout, Desktop: Table */}
-          <div className="block md:hidden">
-            {filteredOrders.length === 0 ? (
-              <div className="text-center text-gray-400 py-8">No orders found.</div>
+          {/* Loading state */}
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-cyan"></div>
+            </div>
+          )}
+
+          {/* Mobile: Card layout */}
+          <div className="block md:hidden space-y-3 sm:space-y-4">
+            {!loading && filteredOrders.length === 0 ? (
+              <div className="text-center py-8 space-y-2">
+                <div className="text-gray-400 text-sm sm:text-base">No orders found.</div>
+                {searchTerm && (
+                  <Button 
+                    variant="link" 
+                    onClick={() => setSearchTerm('')}
+                    className="text-neon-cyan hover:text-neon-purple transition-colors duration-300"
+                  >
+                    Clear search
+                  </Button>
+                )}
+              </div>
             ) : (
-              filteredOrders.map(order => (
-                <div key={order.id} className="bg-white/10 rounded-xl p-3 mb-3 shadow flex flex-col gap-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-white text-sm">Order #{order.order_number}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>{formatStatus(order.status)}</span>
+              filteredOrders.map((order, index) => (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-neon-cyan/30"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-bold text-white text-sm sm:text-base">Order #{order.order_number}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(order.status)} text-black`}>
+                      {formatStatus(order.status)}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-300">
+                  <div className="flex justify-between text-xs sm:text-sm text-gray-300 mb-3">
                     <span>{format(new Date(order.created_at || ''), 'MMM dd, yyyy')}</span>
-                    <span className="font-bold text-neon-cyan">₹{order.total_amount}</span>
+                    <span className="font-bold text-neon-cyan">₹{order.total_amount.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex gap-2 mt-2">
-                    <Button size="sm" className="flex-1 py-1 text-xs" onClick={() => handleViewOrder(order.order_number)}>
+                  <div className="flex gap-2 sm:gap-3">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleViewOrder(order.order_number)}
+                      className="flex-1 py-1.5 text-xs sm:text-sm bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/30"
+                    >
+                      <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       View
                     </Button>
-                    <Button size="sm" className="flex-1 py-1 text-xs" onClick={() => handleDownloadInvoice(order)} disabled={downloadingInvoice === order.id}>
-                      {downloadingInvoice === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Invoice'}
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleDownloadInvoice(order)} 
+                      disabled={downloadingInvoice === order.id}
+                      className="flex-1 py-1.5 text-xs sm:text-sm bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/30"
+                    >
+                      {downloadingInvoice === order.id ? (
+                        <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Invoice
+                        </>
+                      )}
                     </Button>
                     {order.status === 'delivered' && !order.status?.includes('return') && (
                       <Button
                         size="sm"
-                        className="flex-1 py-1 text-xs"
                         onClick={() => navigate(`/return-request/${order.id}`)}
+                        className="flex-1 py-1.5 text-xs sm:text-sm bg-neon-pink/20 hover:bg-neon-pink/30 text-neon-pink border border-neon-pink/30"
                       >
-                        Request Return
+                        Return
                       </Button>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))
             )}
           </div>
 
           {/* Desktop: Table layout */}
           <div className="hidden md:block">
-            <Card className="bg-black/60 backdrop-blur-md border-white/20">
-              <CardHeader>
-                <CardTitle className="text-white">Your Orders</CardTitle>
-                <div className="flex gap-4">
-                  <Input
-                    type="text"
-                    placeholder="Search by order number"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="w-64 bg-white/10 text-white border border-white/20 rounded-lg px-3 py-2"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
+            <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/20 shadow-2xl shadow-neon-cyan/10 rounded-2xl overflow-hidden">
+              <CardContent className="p-6">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Order #</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="border-b border-white/10 hover:bg-transparent">
+                      <TableHead className="text-neon-cyan font-space font-semibold">Order #</TableHead>
+                      <TableHead className="text-neon-purple font-space font-semibold">Status</TableHead>
+                      <TableHead className="text-neon-pink font-space font-semibold">Date</TableHead>
+                      <TableHead className="text-neon-orange font-space font-semibold">Total</TableHead>
+                      <TableHead className="text-white font-space font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOrders.length === 0 ? (
+                    {loading ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-gray-400 py-8">No orders found.</TableCell>
+                        <TableCell colSpan={5} className="h-32">
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-cyan"></div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredOrders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-32">
+                          <div className="text-center space-y-2">
+                            <div className="text-gray-400">No orders found.</div>
+                            {searchTerm && (
+                              <Button 
+                                variant="link" 
+                                onClick={() => setSearchTerm('')}
+                                className="text-neon-cyan hover:text-neon-purple transition-colors duration-300"
+                              >
+                                Clear search
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ) : (
-                      filteredOrders.map(order => (
-                        <TableRow key={order.id}>
-                          <TableCell>#{order.order_number}</TableCell>
+                      filteredOrders.map((order, index) => (
+                        <motion.tr
+                          key={order.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          className="border-b border-white/10 hover:bg-white/5 transition-colors duration-200"
+                        >
+                          <TableCell className="font-medium text-white">#{order.order_number}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>{formatStatus(order.status)}</span>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)} text-black`}>
+                              {formatStatus(order.status)}
+                            </span>
                           </TableCell>
-                          <TableCell>{format(new Date(order.created_at || ''), 'MMM dd, yyyy')}</TableCell>
-                          <TableCell className="font-bold text-neon-cyan">₹{order.total_amount}</TableCell>
+                          <TableCell className="text-gray-300">
+                            {format(new Date(order.created_at || ''), 'MMM dd, yyyy')}
+                          </TableCell>
+                          <TableCell className="font-bold text-neon-cyan">
+                            ₹{order.total_amount.toLocaleString('en-IN')}
+                          </TableCell>
                           <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleViewOrder(order.order_number)}>
+                            <div className="flex items-center gap-3">
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleViewOrder(order.order_number)}
+                                className="bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/30"
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
                                 View
                               </Button>
-                              <Button size="sm" onClick={() => handleDownloadInvoice(order)} disabled={downloadingInvoice === order.id}>
-                                {downloadingInvoice === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Invoice'}
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleDownloadInvoice(order)} 
+                                disabled={downloadingInvoice === order.id}
+                                className="bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-purple border border-neon-purple/30"
+                              >
+                                {downloadingInvoice === order.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Invoice
+                                  </>
+                                )}
                               </Button>
                               {order.status === 'delivered' && !order.status?.includes('return') && (
                                 <Button
                                   size="sm"
                                   onClick={() => navigate(`/return-request/${order.id}`)}
+                                  className="bg-neon-pink/20 hover:bg-neon-pink/30 text-neon-pink border border-neon-pink/30"
                                 >
-                                  Request Return
+                                  Return
                                 </Button>
                               )}
                             </div>
                           </TableCell>
-                        </TableRow>
+                        </motion.tr>
                       ))
                     )}
                   </TableBody>

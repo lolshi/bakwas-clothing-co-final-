@@ -1,18 +1,21 @@
-import Groq from 'groq-sdk';
-
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: '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',
-  dangerouslyAllowBrowser: true // Note: In production, this should be handled server-side
-});
+// Use Vite proxy instead of direct API calls
+const API_BASE = '/api/groq';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
+// Debug logging for environment
+console.log('🔍 Debug - Environment Check:');
+console.log('- import.meta.env exists:', !!import.meta.env);
+console.log('- VITE_GROQ_API_KEY exists:', !!import.meta.env.VITE_GROQ_API_KEY);
+console.log('- VITE_GROQ_API_KEY length:', import.meta.env.VITE_GROQ_API_KEY?.length || 0);
+
 export async function getChatResponse(messages: ChatMessage[]): Promise<string> {
   try {
+    console.log('🚀 Debug - Making chat request via proxy');
+    
     const systemMessage: ChatMessage = {
       role: 'system',
       content: `You are bakwAIs, the AI assistant for Bakwas Clothing Co., a neon streetwear brand. 
@@ -35,22 +38,40 @@ SPECIAL COMMANDS: Respond to @bakwAIs mentions with extra enthusiasm. Handle ord
 BRAND FOCUS: Emphasize Bakwas Clothing Co.'s neon streetwear aesthetic, quality, and style-forward approach.`
     };
 
-    const chatCompletion = await groq.chat.completions.create({
+    const response = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
       messages: [systemMessage, ...messages],
-      model: 'llama3-8b-8192',
       temperature: 0.7,
       max_tokens: 500,
+      }),
     });
 
-    return chatCompletion.choices[0]?.message?.content || 'Sorry, I could not generate a response. Please try again.';
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔴 Groq API error:', response.status, errorText);
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Debug - Chat response received:', data.choices?.[0]?.message?.content?.substring(0, 100) + '...');
+    
+    return data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response. Please try again.';
   } catch (error) {
-    console.error('Groq API Error:', error);
+    console.error('❌ Chat API Error:', error);
     return 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.';
   }
 }
 
 export async function getContextualSuggestions(messages: ChatMessage[]): Promise<string[]> {
   try {
+    console.log('🚀 Debug - Making suggestions request via proxy');
+    
     const systemMessage: ChatMessage = {
       role: 'system',
       content: `Based on the conversation history, generate exactly 3 short follow-up questions about fashion and styling.
@@ -70,26 +91,42 @@ Best colors for summer looks?
 Focus on: colors, styling, fits, care instructions, streetwear trends.`
     };
 
-    const chatCompletion = await groq.chat.completions.create({
+    const response = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
       messages: [systemMessage, ...messages],
-      model: 'llama3-8b-8192',
       temperature: 0.6,
       max_tokens: 60,
+      }),
     });
 
-    const response = chatCompletion.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔴 Groq API error for suggestions:', response.status, errorText);
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const responseText = data.choices?.[0]?.message?.content || '';
+    
+    console.log('✅ Debug - Suggestions response received:', responseText);
     
     // Better parsing - handle various response formats
-    let suggestions = response
+    let suggestions = responseText
       .split('\n')
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-      .filter(s => !s.toLowerCase().includes('happy to help'))
-      .filter(s => !s.toLowerCase().includes('conversation history'))
-      .filter(s => !s.toLowerCase().includes('general fashion'))
-      .filter(s => s.includes('?') || s.length > 10) // Must be a question or substantial text
-      .map(s => s.replace(/^\d+\.?\s*/, '')) // Remove numbers
-      .map(s => s.replace(/^[-•]\s*/, '')) // Remove bullets
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0)
+      .filter((s: string) => !s.toLowerCase().includes('happy to help'))
+      .filter((s: string) => !s.toLowerCase().includes('conversation history'))
+      .filter((s: string) => !s.toLowerCase().includes('general fashion'))
+      .filter((s: string) => s.includes('?') || s.length > 10) // Must be a question or substantial text
+      .map((s: string) => s.replace(/^\d+\.?\s*/, '')) // Remove numbers
+      .map((s: string) => s.replace(/^[-•]\s*/, '')) // Remove bullets
       .slice(0, 3);
     
     // Ensure we have exactly 3 suggestions
@@ -114,7 +151,7 @@ Focus on: colors, styling, fits, care instructions, streetwear trends.`
     
     return suggestions.slice(0, 3);
   } catch (error) {
-    console.error('Groq Suggestions Error:', error);
+    console.error('❌ Suggestions API Error:', error);
     // Fallback suggestions
     return [
       "What colors go with neon pink?",

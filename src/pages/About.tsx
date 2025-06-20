@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Target, Heart, Zap, Users, Award, MapPin, Calendar, Globe, Instagram, Twitter, Mail, ArrowRight } from 'lucide-react';
+import TestRazorpay from '@/components/TestRazorpay';
 
 const About = () => {
   const [content, setContent] = useState('');
@@ -342,6 +343,8 @@ const About = () => {
             </div>
           </motion.div>
 
+          <TestRazorpay />
+
           {/* Team Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -459,8 +462,8 @@ const About = () => {
                     </Button>
                   </motion.div>
                 </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </div>

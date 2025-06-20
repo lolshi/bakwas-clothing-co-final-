@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
 import { useSprings, animated, config } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 
@@ -9,7 +9,7 @@ export interface ProductColorCoverflowHandle {
 interface ProductColorCoverflowProps {
   images: string[];
   alt: string;
-  colors?: string[];
+  colors?: { hex: string; displayName: string; original: string }[];
   onColorIndexChange?: (idx: number) => void;
   aspectRatio?: string;
   centerOffset?: number;
@@ -27,6 +27,7 @@ const ProductColorCoverflow = forwardRef<ProductColorCoverflowHandle, ProductCol
     const [index, setIndex] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const TOTAL = images.length;
+    const lastIndexRef = useRef(index);
 
     useEffect(() => {
       const handleResize = () => setIsMobile(window.innerWidth < 640);
@@ -36,7 +37,10 @@ const ProductColorCoverflow = forwardRef<ProductColorCoverflowHandle, ProductCol
     }, []);
 
     useEffect(() => {
-      if (onColorIndexChange) onColorIndexChange(index);
+      if (onColorIndexChange && lastIndexRef.current !== index) {
+        onColorIndexChange(index);
+        lastIndexRef.current = index;
+      }
     }, [index, onColorIndexChange]);
 
     // 3D coverflow style logic
@@ -139,8 +143,13 @@ const ProductColorCoverflow = forwardRef<ProductColorCoverflowHandle, ProductCol
         {/* Dots */}
         {TOTAL > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.map((_, idx) => (
-              <span key={idx} className={`w-2 h-2 rounded-full ${idx === index ? 'bg-white' : 'bg-white/40'}`}></span>
+            {colors.map((color, idx) => (
+              <span
+                key={idx}
+                className={`w-2 h-2 rounded-full ${idx === index ? 'bg-white' : 'bg-white/40'}`}
+                style={{ backgroundColor: color.hex }}
+                title={color.displayName}
+              ></span>
             ))}
           </div>
         )}

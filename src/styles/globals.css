@@ -210,10 +210,10 @@ body.modal-open {
     --radius: 0.5rem;
 
     /* Neon Colors */
-    --neon-cyan: #00E1FF;
-    --neon-pink: #FF0080;
-    --neon-purple: #8B5CF6;
-    --neon-orange: #F97316;
+    --neon-cyan: rgb(0, 225, 255);
+    --neon-pink: rgb(255, 0, 255);
+    --neon-purple: rgb(139, 92, 246);
+    --neon-orange: rgb(255, 136, 0);
     --brand-accent: var(--neon-cyan);
   }
 
@@ -554,28 +554,28 @@ body.modal-open {
 
 /* Neon text effects */
 .text-neon-cyan {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--neon-cyan);
   text-shadow: 
     0 0 10px rgba(0, 255, 255, 0.8),
     0 0 20px rgba(0, 255, 255, 0.4);
 }
 
 .text-neon-pink {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--neon-pink);
   text-shadow: 
     0 0 10px rgba(255, 0, 195, 0.8),
     0 0 20px rgba(255, 0, 195, 0.4);
 }
 
 .text-neon-purple {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--neon-purple);
   text-shadow: 
     0 0 10px rgba(147, 89, 255, 0.8),
     0 0 20px rgba(147, 89, 255, 0.4);
 }
 
 .text-neon-orange {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--neon-orange);
   text-shadow: 
     0 0 10px rgba(255, 89, 0, 0.8),
     0 0 20px rgba(255, 89, 0, 0.4);
@@ -584,23 +584,42 @@ body.modal-open {
 /* Animated border effects */
 .border-neon-glow {
   position: relative;
+  border: 1px solid rgba(0, 225, 255, 0.2);
+  animation: border-pulse 2s infinite;
 }
 
 .border-neon-glow::before {
   content: '';
   position: absolute;
-  inset: -2px;
-  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-orange));
-  background-size: 400% 400%;
-  animation: border-rotate 8s linear infinite;
-  border-radius: inherit;
+  inset: -1px;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 225, 255, 0.5),
+    rgba(139, 92, 246, 0.5),
+    rgba(255, 0, 255, 0.5)
+  );
+  filter: blur(8px);
   z-index: -1;
+  opacity: 0.5;
+  animation: border-rotate 4s linear infinite;
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: rgba(0, 225, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 225, 255, 0.4);
+  }
 }
 
 @keyframes border-rotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Psychedelic hover effects */
@@ -1307,4 +1326,270 @@ body.modal-open {
 .animate-rainbow {
   background-size: 300% 300%;
   animation: rainbowShift 4s ease-in-out infinite;
+}
+
+/* Custom Scrollbar for Filter Sidebar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* bakwAIs Help Page Animations */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 15s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* Neon Colors */
+:root {
+  --neon-cyan: rgb(0, 225, 255);
+  --neon-purple: rgb(139, 92, 246);
+  --neon-pink: rgb(255, 0, 255);
+  --neon-orange: rgb(255, 136, 0);
+}
+
+/* Neon Color Classes */
+.text-neon-cyan {
+  color: var(--neon-cyan);
+}
+
+.text-neon-purple {
+  color: var(--neon-purple);
+}
+
+.text-neon-pink {
+  color: var(--neon-pink);
+}
+
+.text-neon-orange {
+  color: var(--neon-orange);
+}
+
+.from-neon-cyan {
+  --tw-gradient-from: var(--neon-cyan);
+}
+
+.from-neon-purple {
+  --tw-gradient-from: var(--neon-purple);
+}
+
+.from-neon-pink {
+  --tw-gradient-from: var(--neon-pink);
+}
+
+.from-neon-orange {
+  --tw-gradient-from: var(--neon-orange);
+}
+
+.to-neon-cyan {
+  --tw-gradient-to: var(--neon-cyan);
+}
+
+.to-neon-purple {
+  --tw-gradient-to: var(--neon-purple);
+}
+
+.to-neon-pink {
+  --tw-gradient-to: var(--neon-pink);
+}
+
+.to-neon-orange {
+  --tw-gradient-to: var(--neon-orange);
+}
+
+.via-neon-cyan {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--neon-cyan), var(--tw-gradient-to);
+}
+
+.via-neon-purple {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--neon-purple), var(--tw-gradient-to);
+}
+
+.via-neon-pink {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--neon-pink), var(--tw-gradient-to);
+}
+
+.via-neon-orange {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--neon-orange), var(--tw-gradient-to);
+}
+
+/* Neon Border Colors */
+.border-neon-cyan {
+  border-color: var(--neon-cyan);
+}
+
+.border-neon-purple {
+  border-color: var(--neon-purple);
+}
+
+.border-neon-pink {
+  border-color: var(--neon-pink);
+}
+
+.border-neon-orange {
+  border-color: var(--neon-orange);
+}
+
+/* Neon Shadow Colors */
+.shadow-neon-cyan {
+  --tw-shadow-color: var(--neon-cyan);
+}
+
+.shadow-neon-purple {
+  --tw-shadow-color: var(--neon-purple);
+}
+
+.shadow-neon-pink {
+  --tw-shadow-color: var(--neon-pink);
+}
+
+.shadow-neon-orange {
+  --tw-shadow-color: var(--neon-orange);
+}
+
+/* Responsive Font Sizes */
+@media (max-width: 640px) {
+  .text-4xl {
+    font-size: 2rem;
+  }
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  .text-xl {
+    font-size: 1.25rem;
+  }
+}
+
+/* Chat Interface Specific Styles */
+.border-neon-glow {
+  position: relative;
+  border: 1px solid rgba(0, 225, 255, 0.2);
+  animation: border-pulse 2s infinite;
+}
+
+.border-neon-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 225, 255, 0.5),
+    rgba(139, 92, 246, 0.5),
+    rgba(255, 0, 255, 0.5)
+  );
+  filter: blur(8px);
+  z-index: -1;
+  opacity: 0.5;
+  animation: border-rotate 4s linear infinite;
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: rgba(0, 225, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 225, 255, 0.4);
+  }
+}
+
+@keyframes border-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Chat Message Animations */
+@keyframes message-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(0, 225, 255, 0.3),
+                0 0 10px rgba(0, 225, 255, 0.2),
+                0 0 15px rgba(0, 225, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(0, 225, 255, 0.4),
+                0 0 20px rgba(0, 225, 255, 0.3),
+                0 0 30px rgba(0, 225, 255, 0.2);
+  }
+}
+
+/* Custom Scrollbar for Chat */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 225, 255, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 225, 255, 0.5);
+}
+
+/* Animated Text Shimmer Effect */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-text-shimmer {
+  animation: text-shimmer 3s ease-in-out infinite;
+  background-size: 200% auto;
+}
+
+/* Chat Input Focus Effects */
+.chat-input:focus {
+  box-shadow: 0 0 0 2px rgba(0, 225, 255, 0.2),
+              0 0 0 4px rgba(0, 225, 255, 0.1);
+  border-color: var(--neon-cyan);
+}
+
+/* Quick Command Button Hover Effects */
+.quick-command-btn {
+  transition: all 0.3s ease;
+}
+
+.quick-command-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 225, 255, 0.2);
+}
+
+.quick-command-btn:active {
+  transform: translateY(0);
 } 
