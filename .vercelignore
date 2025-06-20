@@ -1,0 +1,15 @@
+# Ignore frontend files for serverless function builds
+node_modules
+src
+public
+.env*
+.gitignore
+package.json
+package-lock.json
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+README.md 
