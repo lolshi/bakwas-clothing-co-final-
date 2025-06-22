@@ -75,6 +75,11 @@ class RazorpayOrderRequest(BaseModel):
     currency: str
     receipt: str
 
+class RazorpayVerificationRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
 @app.get("/health")
 def health_check():
     return {
@@ -177,6 +182,39 @@ async def create_razorpay_order(request: RazorpayOrderRequest):
         return JSONResponse(
             status_code=500,
             content={"error": error_msg}
+        )
+
+@app.post("/api/verify-payment")
+async def verify_payment(request: RazorpayVerificationRequest):
+    logger.info(f"Received payment verification request: {request}")
+    try:
+        params_dict = {
+            'razorpay_order_id': request.razorpay_order_id,
+            'razorpay_payment_id': request.razorpay_payment_id,
+            'razorpay_signature': request.razorpay_signature
+        }
+        
+        # Verify the payment signature
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        # If verification is successful, the above line does not raise an exception.
+        logger.info(f"Payment verification successful for order_id: {request.razorpay_order_id}")
+        return JSONResponse(
+            status_code=200,
+            content={"status": "success", "order_id": request.razorpay_order_id}
+        )
+    except razorpay.errors.SignatureVerificationError as e:
+        logger.error(f"Signature verification failed: {str(e)}")
+        return JSONResponse(
+            status_code=400,
+            content={"status": "failure", "error": "Invalid payment signature"}
+        )
+    except Exception as e:
+        error_msg = f"Error verifying payment: {str(e)}"
+        logger.error(error_msg)
+        return JSONResponse(
+            status_code=500,
+            content={"status": "failure", "error": error_msg}
         )
 
 @app.get("/test-env")
