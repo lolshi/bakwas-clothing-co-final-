@@ -57,6 +57,7 @@ import MobileProductDetailTest from './pages/MobileProductDetailTest';
 import MobileProductDetailTestEnhanced from './pages/MobileProductDetailTestEnhanced';
 import ShopTest from "./pages/ShopTest";
 import TestRazorpay from "./components/TestRazorpay";
+import Payment from './pages/Payment';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +87,8 @@ const App = () => (
                       <Route path="/signup" element={<Signup />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/payment/:orderNumber" element={<Payment />} />
+                      <Route path="/payment" element={<Payment />} />
                       <Route path="/help" element={<Help />} />
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/returns-policy" element={<ReturnsPolicy />} />

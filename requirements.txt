@@ -1,7 +1,6 @@
 fastapi
 uvicorn
-pydantic
 python-dotenv
-requests
-razorpay>=1.4.2
+razorpay
+
 setuptools>=80.9.0 

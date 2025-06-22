@@ -468,10 +468,10 @@ const MyAccount = () => {
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-neon-orange to-neon-pink rounded-full flex items-center justify-center">
                           <span className="text-xl sm:text-2xl font-bold text-black">₹</span>
                         </div>
-                        <CardTitle className="text-neon-orange text-xl sm:text-2xl font-anton">Wallet Balance</CardTitle>
+                        <CardTitle className="text-neon-orange text-xl sm:text-2xl font-anton text-shadow-orange">Wallet Balance</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl sm:text-3xl font-bold text-neon-orange font-anton">
+                        <div className="text-2xl sm:text-3xl font-bold text-neon-orange font-anton text-shadow-orange">
                           ₹{walletBalance !== null ? walletBalance.toFixed(2) : '0.00'}
                         </div>
                         <div className="text-white/60 font-space text-xs sm:text-sm mt-1">
@@ -489,7 +489,7 @@ const MyAccount = () => {
                   >
                     <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/30 shadow-2xl shadow-neon-cyan/20 hover:shadow-neon-purple/30 transition-all duration-500 rounded-xl sm:rounded-2xl">
                       <CardHeader className="pb-4 sm:pb-6">
-                        <CardTitle className="text-neon-cyan text-2xl sm:text-3xl font-anton flex items-center gap-3 sm:gap-4">
+                        <CardTitle className="text-neon-cyan text-2xl sm:text-3xl font-anton flex items-center gap-3 sm:gap-4 text-shadow-cyan">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-full flex items-center justify-center">
                             <User className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
                           </div>

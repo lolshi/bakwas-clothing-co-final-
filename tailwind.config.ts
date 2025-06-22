@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from 'tailwindcss/plugin';
 
 export default {
 	darkMode: ["class"],
@@ -400,5 +401,27 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		plugin(function({ addUtilities, theme }) {
+			const newUtilities = {
+				'.text-shadow-cyan': {
+					textShadow: `0 0 8px ${theme('colors.neon.cyan')}`,
+				},
+				'.text-shadow-pink': {
+					textShadow: `0 0 8px ${theme('colors.neon.pink')}`,
+				},
+				'.text-shadow-purple': {
+					textShadow: `0 0 8px ${theme('colors.neon.purple')}`,
+				},
+				'.text-shadow-orange': {
+					textShadow: `0 0 8px ${theme('colors.neon.orange')}`,
+				},
+				'.text-shadow-white': {
+					textShadow: '0 0 8px rgba(255, 255, 255, 0.7)',
+				},
+			}
+			addUtilities(newUtilities)
+		})
+	],
 } satisfies Config;

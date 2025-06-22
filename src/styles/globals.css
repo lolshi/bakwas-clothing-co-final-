@@ -534,57 +534,35 @@ body.modal-open {
 }
 
 @keyframes smoke-drift-3 {
-  0% { 
-    transform: translateX(0px) translateY(10px) rotate(0deg);
-    opacity: 0.4;
-  }
-  40% { 
-    transform: translateX(20px) translateY(-5px) rotate(144deg);
-    opacity: 0.7;
-  }
-  80% { 
-    transform: translateX(-15px) translateY(-15px) rotate(288deg);
-    opacity: 0.3;
-  }
-  100% { 
-    transform: translateX(0px) translateY(10px) rotate(360deg);
-    opacity: 0.4;
-  }
+  from { transform: translateX(20%) translateY(15%) rotate(-3deg); opacity: 0.15; }
+  to { transform: translateX(-120%) translateY(25%) rotate(3deg); opacity: 0; }
 }
 
 /* Neon text effects */
+/* These classes are now handled by the textShadow plugin in tailwind.config.ts */
+/*
 .text-neon-cyan {
   color: var(--neon-cyan);
-  text-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.8),
-    0 0 20px rgba(0, 255, 255, 0.4);
+  text-shadow: 0 0 8px rgba(0, 225, 255, 0.7);
 }
-
 .text-neon-pink {
   color: var(--neon-pink);
-  text-shadow: 
-    0 0 10px rgba(255, 0, 195, 0.8),
-    0 0 20px rgba(255, 0, 195, 0.4);
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
 }
-
 .text-neon-purple {
   color: var(--neon-purple);
-  text-shadow: 
-    0 0 10px rgba(147, 89, 255, 0.8),
-    0 0 20px rgba(147, 89, 255, 0.4);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.7);
 }
-
 .text-neon-orange {
   color: var(--neon-orange);
-  text-shadow: 
-    0 0 10px rgba(255, 89, 0, 0.8),
-    0 0 20px rgba(255, 89, 0, 0.4);
+  text-shadow: 0 0 8px rgba(255, 136, 0, 0.7);
 }
+*/
 
 /* Animated border effects */
 .border-neon-glow {
   position: relative;
-  border: 1px solid rgba(0, 225, 255, 0.2);
+  border: 2px solid transparent;
   animation: border-pulse 2s infinite;
 }
 
@@ -715,14 +693,8 @@ body.modal-open {
 }
 
 @keyframes pulseHalo {
-  0%, 100% { 
-    opacity: 0.3;
-    filter: blur(40px);
-  }
-  50% { 
-    opacity: 0.6;
-    filter: blur(35px);
-  }
+  0%, 100% { box-shadow: 0 0 20px 5px rgba(0, 255, 255, 0.3), inset 0 0 15px 3px rgba(0, 255, 255, 0.2); }
+  50% { box-shadow: 0 0 30px 10px rgba(0, 255, 255, 0.1), inset 0 0 20px 5px rgba(0, 255, 255, 0.1); }
 }
 
 @media (max-width: 640px) {
@@ -746,6 +718,8 @@ body.modal-open {
 }
 
 /* Enhanced neon text effects with gradients */
+/* These classes are now handled by the textShadow plugin in tailwind.config.ts */
+/*
 .text-neon-cyan {
   background: linear-gradient(
     to right,
@@ -756,13 +730,9 @@ body.modal-open {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.8),
-    0 0 20px rgba(0, 255, 255, 0.4),
-    0 0 30px rgba(0, 255, 255, 0.2);
+  text-shadow: 0 0 8px rgba(0, 225, 255, 0.7);
   animation: neonPulse 2s ease-in-out infinite, gradientFlow 4s linear infinite;
 }
-
 .text-neon-pink {
   background: linear-gradient(
     to right,
@@ -773,13 +743,9 @@ body.modal-open {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 
-    0 0 10px rgba(255, 0, 195, 0.8),
-    0 0 20px rgba(255, 0, 195, 0.4),
-    0 0 30px rgba(255, 0, 195, 0.2);
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
   animation: neonPulse 2s ease-in-out infinite 0.5s, gradientFlow 4s linear infinite;
 }
-
 .text-neon-purple {
   background: linear-gradient(
     to right,
@@ -790,13 +756,9 @@ body.modal-open {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 
-    0 0 10px rgba(147, 89, 255, 0.8),
-    0 0 20px rgba(147, 89, 255, 0.4),
-    0 0 30px rgba(147, 89, 255, 0.2);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.7);
   animation: neonPulse 2s ease-in-out infinite 1s, gradientFlow 4s linear infinite;
 }
-
 .text-neon-orange {
   background: linear-gradient(
     to right,
@@ -807,25 +769,17 @@ body.modal-open {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 
-    0 0 10px rgba(255, 89, 0, 0.8),
-    0 0 20px rgba(255, 89, 0, 0.4),
-    0 0 30px rgba(255, 89, 0, 0.2);
+  text-shadow: 0 0 8px rgba(255, 136, 0, 0.7);
   animation: neonPulse 2s ease-in-out infinite 1.5s, gradientFlow 4s linear infinite;
 }
+*/
 
 @keyframes neonPulse {
   0%, 100% {
-    text-shadow: 
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 30px currentColor;
+    text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 6px var(--brand-accent);
   }
   50% {
-    text-shadow: 
-      0 0 20px currentColor,
-      0 0 40px currentColor,
-      0 0 60px currentColor;
+    text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
   }
 }
 
@@ -840,12 +794,15 @@ body.modal-open {
 
 /* Basic responsive utilities */
 @media (max-width: 640px) {
+  /* These classes are now handled by the textShadow plugin in tailwind.config.ts */
+  /*
   .text-neon-cyan,
   .text-neon-pink,
   .text-neon-purple,
   .text-neon-orange {
     text-shadow: 0 0 3px currentColor;
   }
+  */
 }
 
 /* Header & Footer Animations */
@@ -1374,21 +1331,25 @@ body.modal-open {
 }
 
 /* Neon Color Classes */
+/* These classes are now handled by the textShadow plugin in tailwind.config.ts */
+/*
 .text-neon-cyan {
   color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 225, 255, 0.7);
 }
-
-.text-neon-purple {
-  color: var(--neon-purple);
-}
-
 .text-neon-pink {
   color: var(--neon-pink);
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
 }
-
+.text-neon-purple {
+  color: var(--neon-purple);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.7);
+}
 .text-neon-orange {
   color: var(--neon-orange);
+  text-shadow: 0 0 8px rgba(255, 136, 0, 0.7);
 }
+*/
 
 .from-neon-cyan {
   --tw-gradient-from: var(--neon-cyan);
