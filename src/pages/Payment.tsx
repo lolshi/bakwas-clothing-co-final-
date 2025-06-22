@@ -122,7 +122,12 @@ const Payment = () => {
     // Fetch Razorpay order_id from backend for this order
     let order_id = '';
     try {
-      const response = await fetch('http://localhost:8000/api/create-razorpay-order', {
+      const isProduction = import.meta.env.PROD;
+      const backendUrl = isProduction 
+        ? 'https://bakwas-api.onrender.com/api/create-razorpay-order' 
+        : 'http://localhost:8000/api/create-razorpay-order';
+
+      const response = await fetch(backendUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
