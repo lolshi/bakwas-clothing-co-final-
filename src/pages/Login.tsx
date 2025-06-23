@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -77,6 +78,13 @@ const Login = () => {
     }
 
     setIsLoading(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
   };
 
   return (
@@ -198,33 +206,36 @@ const Login = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full group relative h-12 overflow-hidden rounded-xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02] font-anton text-lg"
+                className="w-full group relative h-12 overflow-hidden rounded-xl border-0 bg-gradient-to-r from-neon-cyan to-neon-pink p-0 transition-all duration-500 hover:scale-[1.02] font-anton text-lg"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange p-[2px] group-hover:from-neon-cyan group-hover:via-neon-purple group-hover:to-neon-pink transition-all duration-500"></div>
-                <div className="relative flex items-center justify-center gap-2 px-6 py-2 font-semibold text-white">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    'Login'
-                  )}
-                </div>
+                {isLoading ? <Loader2 className="animate-spin mr-2 h-5 w-5" /> : null}
+                Login
               </Button>
-              <div className="text-center mt-4">
-                <span className="text-white/60">New here? </span>
-                <Link
-                  to="/signup"
-                  className="text-neon-cyan underline hover:text-neon-pink"
-                >
-                  Sign up
-                </Link>
-              </div>
             </form>
+            <div className="my-4 flex items-center justify-center gap-2">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent via-neon-cyan to-transparent" />
+              <span className="text-white/70 text-sm font-medium">or</span>
+              <span className="h-px flex-1 bg-gradient-to-l from-transparent via-neon-cyan to-transparent" />
+            </div>
+            <Button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 bg-white text-black font-semibold py-3 rounded-lg shadow hover:bg-gray-100 transition"
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </Button>
           </CardContent>
         </Card>
+        <div className="text-center mt-4">
+          <span className="text-white/60">New here? </span>
+          <Link
+            to="/signup"
+            className="text-neon-cyan underline hover:text-neon-pink"
+          >
+            Sign up
+          </Link>
+        </div>
       </div>
     </div>
   );
