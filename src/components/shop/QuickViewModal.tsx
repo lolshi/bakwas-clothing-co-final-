@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +9,14 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getColorDisplayName, getColorNameFromHex, getHexFromColorValue, getNearestColorFamilyAndShade } from '@/config/colors';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface QuickViewModalProps {
   product: BaseProduct | null;
   isOpen: boolean;
   onClose: () => void;
+  shouldFocus?: boolean;
+  onDidFocus?: () => void;
 }
 
 // Extend Product type to include variants for modal use
@@ -51,14 +54,16 @@ const colorMap: Record<string, { name: string; code: string }> = {
   '#FFFFFF': { name: 'White', code: '#FFFFFF' }
 };
 
-export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose }) => {
+export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose, shouldFocus = false, onDidFocus }) => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { addToCart } = useCart();
+  const { addToCart, items } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const [added, setAdded] = useState(false);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const navigate = useNavigate();
+  const [justAdded, setJustAdded] = useState(false);
 
   // Reset selections when modal opens
   React.useEffect(() => {
@@ -75,6 +80,14 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, product]);
+
+  // Focus trap for accessibility
+  useEffect(() => {
+    if (isOpen && shouldFocus && closeBtnRef.current) {
+      closeBtnRef.current.focus();
+      if (onDidFocus) onDidFocus();
+    }
+  }, [isOpen, shouldFocus, onDidFocus]);
 
   if (!isOpen || !product) return null;
 
@@ -101,32 +114,20 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
 
   const availableImages = getAvailableImages();
 
+  // Helper to check if the current variant is in the cart
+  const isInCart = () => {
+    if (!product || !selectedSize || !selectedColor) return false;
+    return items.some(item =>
+      item.productId === product.id &&
+      item.selectedSize === selectedSize &&
+      item.selectedColor === selectedColor
+    );
+  };
+
   const handleAddToCart = () => {
-    console.log('🛒 [QuickViewModal] Adding to cart:', {
-      product,
-      selectedSize,
-      selectedColor,
-      quantity,
-      availableImages: getAvailableImages()
-    });
     addToCart(product, selectedSize, selectedColor, quantity);
-    
-    // Fire GTM event
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'add_to_cart', {
-        currency: 'INR',
-        value: product.price * quantity,
-        items: [{
-          item_id: product.id,
-          item_name: product.title,
-          category: product.category,
-          price: product.price,
-          quantity: quantity
-        }]
-      });
-    }
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1000);
   };
 
   const handleWishlistToggle = () => {
@@ -175,17 +176,18 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 400 }}
-            className="relative w-full max-w-5xl max-h-[90vh] bg-black/40 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+            className="relative w-full max-w-5xl max-h-[100dvh] bg-black/40 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
           >
             {/* Close Button */}
             <button
+              ref={closeBtnRef}
               onClick={onClose}
               className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             >
               <X className="w-6 h-6 text-white" />
             </button>
             {/* Scrollable Content */}
-            <div className="h-[90vh] overflow-y-auto">
+            <div className="h-[100dvh] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                 {/* Left Column - Image Gallery */}
                 <div className="space-y-4">
@@ -369,26 +371,24 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
                   <div className="flex gap-4">
                     <Button
                       onClick={handleAddToCart}
-                      className={`flex-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:from-neon-cyan/80 hover:to-neon-pink/80 text-black font-bold py-6 relative overflow-hidden transition-all duration-300 ${added ? 'bg-green-500 scale-105' : ''}`}
-                      disabled={!selectedSize || !selectedColor || added}
+                      className={`flex-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:from-neon-cyan/80 hover:to-neon-pink/80 text-black font-bold py-6 relative overflow-hidden transition-all duration-300 ${justAdded ? 'bg-green-500 scale-105' : ''}`}
+                      disabled={!selectedSize || !selectedColor}
                     >
-                      <AnimatePresence initial={false}>
-                        {added ? (
-                          <motion.span
-                            key="tick"
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1.2, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                            className="flex items-center gap-1 justify-center"
-                          >
-                            <CheckCircle className="w-5 h-5 mr-1" />
-                            Added!
-                          </motion.span>
-                        ) : (
-                          <span key="text" className="flex items-center"><ShoppingCart className="w-5 h-5 mr-2" />Add to Cart</span>
-                        )}
-                      </AnimatePresence>
+                      {justAdded ? (
+                        <span className="flex items-center gap-1 justify-center">
+                          <CheckCircle className="w-5 h-5 mr-1" />
+                          Added!
+                        </span>
+                      ) : (
+                        <span className="flex items-center"><ShoppingCart className="w-5 h-5 mr-2" />Add to Cart</span>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/cart')}
+                      className="flex-1 bg-gradient-to-r from-neon-pink to-neon-cyan text-black font-bold py-6 transition-all duration-300"
+                      disabled={!isInCart()}
+                    >
+                      Go to Cart
                     </Button>
                     <button
                       onClick={handleWishlistToggle}

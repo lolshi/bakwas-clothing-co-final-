@@ -109,6 +109,7 @@ const Shop = () => {
   const [colorIndices, setColorIndices] = useState([0, 0]);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
+  const [shouldFocusModal, setShouldFocusModal] = useState(false);
 
   // Handle product query parameter
   useEffect(() => {
@@ -295,6 +296,8 @@ const Shop = () => {
       images,
     });
     setIsQuickViewOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setShouldFocusModal(true);
   };
 
   const handleScrollLeft = () => {
@@ -725,6 +728,8 @@ const Shop = () => {
           product={selectedProduct}
           isOpen={isQuickViewOpen}
           onClose={() => setIsQuickViewOpen(false)}
+          shouldFocus={shouldFocusModal}
+          onDidFocus={() => setShouldFocusModal(false)}
         />
       </div>
     </div>
