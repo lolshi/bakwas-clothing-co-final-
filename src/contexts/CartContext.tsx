@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface CartItem {
   id: string;
+  productId: string;    // Product UUID
+  variantId: string;    // Variant UUID
   title: string;
   price: number;
   image: string;
@@ -142,120 +144,82 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [items, isLoaded, promoCode, promoCodeData, discount, shippingDiscount]);
 
-  const addToCart = (product: Product, selectedSize?: string, selectedColor?: string, quantity?: number) => {
-    console.log('🔍 [CartContext] Adding to cart:', {
-      productId: product.id,
-      selectedSize,
-      selectedColor,
-      quantity,
-      productColorImages: product.colorImages,
-      productVariants: product.variants,
-      productImages: product.images
-    });
+  const addToCart = async (product: Product, selectedSize?: string, selectedColor?: string, quantity?: number) => {
+    try {
+      // First, fetch the variant from Supabase
+      const { data: variant, error } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', product.id)
+        .eq('color', selectedColor)
+        .eq('size', selectedSize)
+        .single();
 
-    const cartItemId = `${product.id}-${selectedSize || 'no-size'}-${selectedColor || 'no-color'}`;
-    
-    // Find the correct variant image
-    let variantImage = product.image;
-    
-    // First try to find the exact variant match
-    if (product.variants && selectedColor && selectedSize) {
-      console.log('🔍 [CartContext] Searching for exact variant match:', {
-        color: selectedColor,
-        size: selectedSize,
-        variants: product.variants
-      });
-      
-      const variant = product.variants.find(
-        (v: any) => v.color === selectedColor && v.size === selectedSize
-      );
-      
-      if (variant?.images && Array.isArray(variant.images) && variant.images.length > 0) {
-        console.log('✅ [CartContext] Found exact variant match:', variant.images[0]);
-        variantImage = variant.images[0];
-      }
-    }
-    
-    // If no exact match found, try colorImages
-    if (!variantImage && selectedColor && product.colorImages && product.colorImages[selectedColor] && Array.isArray(product.colorImages[selectedColor]) && product.colorImages[selectedColor].length > 0) {
-      console.log('🎨 [CartContext] Using colorImages:', {
-        color: selectedColor,
-        images: product.colorImages[selectedColor]
-      });
-      variantImage = product.colorImages[selectedColor][0];
-    }
-    
-    // If still no image found, try variants without size match
-    if (!variantImage && product.variants && selectedColor) {
-      console.log('🔍 [CartContext] Searching variants without size match:', {
-        color: selectedColor,
-        variants: product.variants
-      });
-      
-      const variant = product.variants.find(
-        (v: any) => v.color === selectedColor
-      );
-      
-      if (variant?.images && Array.isArray(variant.images) && variant.images.length > 0) {
-        console.log('✅ [CartContext] Found color variant:', variant.images[0]);
-        variantImage = variant.images[0];
-      }
-    }
-    
-    // Fallback to product images
-    if (!variantImage && product.images && Array.isArray(product.images) && product.images.length > 0) {
-      console.log('🖼️ [CartContext] Using product images:', product.images[0]);
-      variantImage = product.images[0];
-    }
-    
-    console.log('📸 [CartContext] Final image selected:', variantImage);
-    
-    // Final fallback to default image
-    const productImage = variantImage || '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png';
-    
-    setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === cartItemId);
-      
-      if (existingItem) {
+      if (error || !variant) {
         toast({
-          title: "Quantity updated!",
-          description: `${product.title} quantity increased in cart.`,
+          title: "Variant not found",
+          description: "Selected color/size combination is not available for this product.",
+          variant: "destructive",
         });
-        return prevItems.map(item =>
-          item.id === cartItemId
-            ? { ...item, quantity: item.quantity + (quantity || 1) }
-            : item
-        );
-      } else {
-        toast({
-          title: "Added to cart!",
-          description: `${product.title} has been added to your cart.`,
-        });
-        return [...prevItems, {
-          id: cartItemId,
-          title: product.title,
-          price: product.price,
-          image: productImage,
-          quantity: quantity || 1,
-          selectedSize,
-          selectedColor
-        }];
+        return;
       }
-    });
 
-    // Show animation
-    setLastAddedImage(productImage);
-    setShowAnimation(true);
-    
-    // Clear any existing timeout
-    if (animationTimeoutRef.current) {
-      clearTimeout(animationTimeoutRef.current);
+      // Use the actual variant ID from the database
+      const variantId = variant.id;
+      const variantImage = (variant.images && variant.images.length > 0) 
+        ? variant.images[0] 
+        : (product.image || '/lovable-uploads/7d520bd5-7bd2-434c-b701-948d803e6993.png');
+      
+      // Create cart item ID using just the variant ID since it's unique
+      const cartItemId = variantId;
+
+      setItems(prevItems => {
+        const existingItem = prevItems.find(item => item.id === cartItemId);
+        if (existingItem) {
+          toast({
+            title: "Quantity updated!",
+            description: `${product.title} quantity increased in cart.`,
+          });
+          return prevItems.map(item =>
+            item.id === cartItemId
+              ? { ...item, quantity: item.quantity + (quantity || 1) }
+              : item
+          );
+        } else {
+          toast({
+            title: "Added to cart!",
+            description: `${product.title} has been added to your cart.`,
+          });
+          return [...prevItems, {
+            id: cartItemId,
+            productId: product.id,
+            variantId: variantId, // Use the actual variant ID
+            title: product.title,
+            price: variant.price || product.price,
+            image: variantImage,
+            quantity: quantity || 1,
+            selectedSize,
+            selectedColor
+          }];
+        }
+      });
+
+      setLastAddedImage(variantImage);
+      setShowAnimation(true);
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+      animationTimeoutRef.current = setTimeout(() => {
+        setShowAnimation(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
     }
-    
-    // Set new timeout
-    animationTimeoutRef.current = setTimeout(() => {
-      setShowAnimation(false);
-    }, 1500); // Show for 1.5 seconds
   };
 
   // Cleanup timeout on unmount

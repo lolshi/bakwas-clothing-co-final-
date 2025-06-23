@@ -88,45 +88,26 @@ const Checkout = () => {
 
     setIsProcessingPayment(true);
     try {
-      const orderNumber = `ORD-${Date.now().toString().slice(-8)}`;
-      const shippingAddress = { name: formData.name, streetAddress: formData.streetAddress, city: formData.city, state: formData.state, postalCode: formData.postalCode, country: formData.country, phone: formData.phone };
-
-      const { data: orderResult, error: orderError } = await supabase.from('orders').insert({
-        order_number: orderNumber,
-        customer_name: formData.name,
-        customer_email: user.email!,
-        customer_phone: formData.phone,
-        shipping_address: shippingAddress,
+      // New logic: Store details in localStorage and navigate
+      const tempOrderDetails = {
+        formData,
+        cart: cartItems,
         subtotal,
-        shipping_cost: shippingCost,
-        discount_amount: discount,
-        total_amount: total,
-        status: 'pending',
-        payment_status: 'pending',
-        user_id: user.id
-      }).select('id').single();
+        discount,
+        shipping: shippingCost,
+        total,
+        promoCode: appliedPromo,
+      };
 
-      if (orderError || !orderResult) throw new Error(orderError?.message || 'Failed to create order.');
+      localStorage.setItem('tempOrderDetails', JSON.stringify(tempOrderDetails));
+      navigate('/payment');
 
-      const { data: variantsData, error: variantsError } = await supabase.from('product_variants').select('id, product_id, size, color').in('product_id', cartItems.map(i => i.id.slice(0, 36)));
-      if (variantsError) throw new Error(variantsError.message || 'Failed to fetch variants.');
-
-      const orderItemsPayload = cartItems.map(item => {
-        const productId = item.id.slice(0, 36);
-        const variant = variantsData?.find(v => v.product_id === productId && v.size === item.selectedSize && v.color === item.selectedColor);
-        return { order_id: orderResult.id, product_id: productId, product_name: item.title, product_image: item.image, quantity: item.quantity, unit_price: item.price, total_price: item.price * item.quantity, variant_id: variant?.id || null };
-      });
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItemsPayload);
-      if (itemsError) throw new Error(itemsError.message || 'Failed to save order items.');
-
-      navigate(`/payment/${orderNumber}`);
     } catch (err: any) {
-      console.error('Order creation exception:', err);
-      toast({ title: 'Order Creation Failed', description: err.message || 'An unexpected error occurred.', variant: 'destructive' });
-    } finally {
-      setIsProcessingPayment(false);
+      console.error('Checkout exception:', err);
+      toast({ title: 'Checkout Failed', description: err.message || 'An unexpected error occurred.', variant: 'destructive' });
+      setIsProcessingPayment(false); // Ensure button is re-enabled on error
     }
+    // No need to set isProcessingPayment to false here as navigation will occur
   };
 
   return (

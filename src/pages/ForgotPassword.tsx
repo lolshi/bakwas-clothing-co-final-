@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -29,23 +29,25 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateEmail()) {
       return;
     }
-
     setIsLoading(true);
-
-    // TODO: Implement password reset functionality with Supabase
-    // For now, just simulate the process
-    setTimeout(() => {
+    setEmailError('');
+    // Call Supabase to send the reset email
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'http://localhost:8082/reset-password',
+    });
+    setIsLoading(false);
+    if (error) {
+      setEmailError('Failed to send reset link. Please try again.');
+    } else {
       setIsSubmitted(true);
-      setIsLoading(false);
       toast({
         title: "Reset Link Sent",
         description: "If an account with that email exists, we've sent a password reset link.",
       });
-    }, 1000);
+    }
   };
 
   if (isSubmitted) {
@@ -56,7 +58,6 @@ const ForgotPassword = () => {
           alt="Bakwas Clothing Co." 
           className="w-40 h-auto mb-4"
         />
-
         <Card className="w-full max-w-md bg-gray-800 shadow-lg">
           <CardContent className="text-center p-8">
             <h2 className="text-2xl font-bold text-white mb-4">Check Your Email</h2>
@@ -82,7 +83,6 @@ const ForgotPassword = () => {
         alt="Bakwas Clothing Co." 
         className="w-40 h-auto mb-4"
       />
-
       <Card className="w-full max-w-md bg-gray-800 shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-white mb-4">
@@ -107,7 +107,6 @@ const ForgotPassword = () => {
               />
               {emailError && <p className="text-red-400 text-sm">{emailError}</p>}
             </div>
-
             <Button
               type="submit"
               disabled={isLoading}
@@ -122,7 +121,6 @@ const ForgotPassword = () => {
                 'Send Reset Link'
               )}
             </Button>
-
             <div className="text-center mt-4">
               <Link
                 to="/login"

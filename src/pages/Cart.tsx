@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,211 +124,286 @@ const Cart = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-background relative"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/lovable-uploads/dd9a56c9-3774-432e-930e-da9a0dbac0f3.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      {/* Logo and Heading - mobile responsive */}
-      <div className="flex flex-col items-center gap-2 mb-4 md:flex-row md:items-end md:gap-4">
-        <img 
-          src="/images-videos-logo/d5018b9a-2aba-4a8d-b876-4dff468b69d8.png" 
-          alt="Bakwas Clothing Co." 
-          className="h-16 w-auto md:h-32 lg:h-40 xl:h-48"
-        />
-        <span className="font-anton text-2xl md:text-4xl text-white tracking-widest drop-shadow mt-2 md:mt-0">SHOPPING CART</span>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        {/* Multiple animated gradient layers */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/20 via-black to-neon-cyan/20 animate-gradient-shift"></div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-neon-pink/10 via-transparent to-neon-orange/10 animate-pulse"></div>
+        {/* Floating particles */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-neon-cyan/30 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 1, 0.3],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
       </div>
-      <div className="accent-line mt-2 h-1 w-24 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full"></div>
-      <p className="hero-subtext mt-2 text-base md:text-lg text-gray-200/75 leading-relaxed text-left mb-8">
-        Your curated streetwear collection awaits checkout.
-      </p>
-
-      {cartItems.length === 0 ? (
-        /* Empty State */
-        <div className="text-center py-16">
-          <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-muted-foreground" />
-          <h2 className="font-anton text-2xl mb-4 text-muted-foreground">
-            Your cart is empty
-          </h2>
-          <p className="text-muted-foreground mb-8">
-            Looks like you haven't added anything to your cart yet
-          </p>
-          <Button asChild className="bg-neon-cyan text-black hover:bg-neon-cyan/80">
-            <Link to="/shop">Continue Shopping</Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="cart-container mx-auto px-6 md:px-12 py-12 max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left (col-span-2): Cart items */}
-          <div className="lg:col-span-2 space-y-6">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex bg-white/10 rounded-2xl p-4 gap-4 items-center shadow-md w-full max-w-full flex-wrap md:flex-nowrap">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0 flex flex-col gap-1">
-                  <div className="font-semibold text-white text-base line-clamp-2 break-words">
-                    {item.title}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {productDataMap[item.id.split('-')[0]]?.sizes.length > 1 ? (
-                      <select
-                        value={item.selectedSize}
-                        onChange={e => updateSize(item.id, e.target.value)}
-                        className="rounded bg-white/10 text-white px-2 py-1 text-xs"
-                      >
-                        {productDataMap[item.id.split('-')[0]].sizes.map((size: string) => (
-                          <option key={size} value={size}>{size}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="text-xs text-gray-300">Size: {item.selectedSize}</span>
-                    )}
-                    {item.selectedColor && (
-                      <span className="flex items-center gap-1 text-xs text-gray-300">
-                        <span className="inline-block w-3 h-3 rounded-full border border-white/20" style={{ background: item.selectedColor }} />
-                        {item.selectedColor}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <button
-                      onClick={() => handleQuantityUpdate(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                    >
-                      –
-                    </button>
-                    <span className="text-white font-semibold min-w-[2rem] text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => handleQuantityUpdate(item.id, item.quantity + 1)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition text-white"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end flex-shrink-0 ml-2 gap-2">
-                  <p className="text-lg font-anton text-neon-cyan font-bold whitespace-nowrap">
-                    ₹{(item.price * item.quantity).toLocaleString()}
-                  </p>
-                  <button
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="text-red-400 hover:text-red-600 transition"
-                  >
-                    <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {/* Continue Shopping Link */}
-            <div className="flex justify-center mt-4">
-              <Link 
-                to="/shop" 
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/20 backdrop-blur border border-white/20 text-white font-medium shadow hover:bg-neon-cyan/10 hover:text-neon-cyan transition"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-
-          {/* Right (col-span-1): Order summary */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white/10 border-none text-white">
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Promo Code Input */}
-                {!appliedPromo ? (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Enter promo code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                      className="bg-white/5 border-white/20 text-white placeholder:text-white/50"
-                />
-                    <Button
-                  onClick={handlePromoApply}
-                      disabled={isApplyingPromo || !promoCode.trim()}
-                      className="bg-neon-cyan text-black hover:bg-neon-cyan/80 whitespace-nowrap"
-                >
-                  {isApplyingPromo ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                        'Apply'
-                  )}
-                    </Button>
-              </div>
-                ) : (
-                  <div className="flex items-center justify-between bg-white/5 p-2 rounded">
-                    <span className="text-sm">Code: {appliedPromo}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePromoRemove}
-                      className="text-white hover:text-red-400"
-                    >
-                      Remove
-                    </Button>
-            </div>
-                )}
-
-                {/* Summary Details */}
-                <div className="space-y-2 pt-4">
-                  <div className="flex justify-between">
-                <span>Subtotal</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-neon-cyan">
-                      <span>Discount</span>
-                      <span>-₹{discount.toFixed(2)}</span>
-                </div>
-              )}
-                  <div className="flex justify-between">
-                <span>Shipping</span>
-                    <div className="text-right">
-                      {shippingDiscount ? (
-                        <>
-                          <span className="line-through text-gray-400 mr-2">₹50</span>
-                          <span className="text-neon-cyan">Free</span>
-                        </>
-                      ) : (
-                        <span>{shippingCost > 0 ? `₹${shippingCost.toFixed(2)}` : 'Free'}</span>
-                      )}
-                    </div>
-              </div>
-                  <div className="border-t border-white/20 pt-2 mt-2">
-                    <div className="flex justify-between font-semibold">
-                <span>Total</span>
-                      <span>₹{total.toFixed(2)}</span>
-                    </div>
-              </div>
-            </div>
-
-                {/* Checkout Button */}
-                <Button
-              onClick={handleCheckout}
-                  className="w-full mt-4 bg-neon-cyan text-black hover:bg-neon-cyan/80"
+      {/* Content */}
+      <div className="relative z-10 p-4 sm:p-6 md:p-8">
+        {/* Hero Section */}
+        <motion.div 
+          className="text-center py-6 sm:py-8 md:py-12"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.img 
+            src="/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png" 
+            alt="Bakwas Clothing Co." 
+            className="w-32 sm:w-40 md:w-48 h-auto mx-auto mb-4 sm:mb-6 md:mb-8 drop-shadow-2xl"
+            animate={{ 
+              filter: [
+                'drop-shadow(0 0 20px rgba(0, 225, 255, 0.5))',
+                'drop-shadow(0 0 30px rgba(139, 92, 246, 0.5))',
+                'drop-shadow(0 0 20px rgba(0, 225, 255, 0.5))'
+              ]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          <motion.h1 
+            className="text-4xl sm:text-6xl md:text-8xl font-anton bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4"
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{ duration: 5, repeat: Infinity }}
+            style={{ backgroundSize: '200% 100%' }}
+          >
+            YOUR SHOPPING CART
+          </motion.h1>
+          <motion.p 
+            className="text-lg sm:text-xl md:text-2xl text-white/80 font-space max-w-2xl mx-auto px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            Your curated streetwear collection awaits checkout.
+          </motion.p>
+        </motion.div>
+        <div className="max-w-7xl mx-auto">
+          {cartItems.length === 0 ? (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-16"
             >
-              Proceed to Checkout
+              <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-neon-cyan" />
+              <h2 className="font-anton text-2xl mb-4 text-white">Your cart is empty</h2>
+              <p className="text-white/60 mb-8">Looks like you haven't added anything to your cart yet</p>
+              <Link to="/shop">
+                <Button
+                  className="group relative w-full sm:w-auto h-12 sm:h-14 text-base sm:text-lg font-anton overflow-hidden rounded-xl sm:rounded-2xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange p-[2px] group-hover:from-neon-cyan group-hover:via-neon-purple group-hover:to-neon-pink transition-all duration-500"></div>
+                  <div className="relative flex items-center justify-center gap-2 px-6 sm:px-8 py-2 sm:py-3 font-semibold text-white">
+                    Continue Shopping
+                  </div>
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </Link>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Cart Items Section */}
+              <motion.div 
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="lg:col-span-2 space-y-4"
+              >
+                <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/30 shadow-2xl shadow-neon-cyan/20 hover:shadow-neon-purple/30 transition-all duration-500">
+                  <CardHeader className="pb-4 sm:pb-6">
+                    <CardTitle className="text-neon-cyan text-2xl sm:text-3xl font-anton flex items-center gap-2 sm:gap-3">
+                      Cart Items
+                    </CardTitle>
+                    <div className="h-1 w-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink rounded-full"></div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {cartItems.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex bg-white/5 backdrop-blur-lg rounded-xl p-4 gap-4 items-center shadow-lg border border-white/10 hover:border-neon-cyan/30 transition-all duration-300"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-white text-lg mb-2">{item.title}</h3>
+                          <div className="flex flex-wrap gap-4 text-sm text-white/60">
+                            <div className="flex items-center gap-2">
+                              {productDataMap[item.id.split('-')[0]]?.sizes.length > 1 ? (
+                                <select
+                                  value={item.selectedSize}
+                                  onChange={e => updateSize(item.id, e.target.value)}
+                                  className="bg-white/10 border border-white/20 rounded-lg text-white px-3 py-1"
+                                >
+                                  {productDataMap[item.id.split('-')[0]].sizes.map((size: string) => (
+                                    <option key={size} value={size}>{size}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <span>Size: {item.selectedSize}</span>
+                              )}
+                            </div>
+                            {item.selectedColor && (
+                              <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full border border-white/20" style={{ background: item.selectedColor }} />
+                                <span>{item.selectedColor}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg bg-white/10 border-white/20 hover:bg-white/20"
+                                onClick={() => handleQuantityUpdate(item.id, Math.max(1, item.quantity - 1))}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="text-white min-w-[2rem] text-center">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg bg-white/10 border-white/20 hover:bg-white/20"
+                                onClick={() => handleQuantityUpdate(item.id, item.quantity + 1)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-white font-semibold">₹{(item.price * item.quantity).toFixed(2)}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                                onClick={() => handleRemoveItem(item.id)}
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+              {/* Summary Section */}
+              <motion.div
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="lg:col-span-1"
+              >
+                <Card className="bg-black/40 backdrop-blur-xl border-2 border-neon-cyan/30 shadow-2xl shadow-neon-cyan/20 hover:shadow-neon-purple/30 transition-all duration-500 sticky top-4">
+                  <CardHeader className="pb-4 sm:pb-6">
+                    <CardTitle className="text-neon-cyan text-2xl sm:text-3xl font-anton flex items-center gap-2 sm:gap-3">
+                      Order Summary
+                    </CardTitle>
+                    <div className="h-1 w-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink rounded-full"></div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Promo Code Section */}
+                    {!appliedPromo && (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Enter promo code"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value)}
+                            className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                          />
+                          <Button
+                            onClick={handlePromoApply}
+                            disabled={isApplyingPromo || !promoCode.trim()}
+                            className="group relative overflow-hidden rounded-xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02] min-w-[100px]"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange p-[2px] group-hover:from-neon-cyan group-hover:via-neon-purple group-hover:to-neon-pink transition-all duration-500"></div>
+                            <div className="relative flex items-center justify-center gap-2 px-4 py-2 font-semibold text-white">
+                              {isApplyingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                            </div>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {/* Applied Promo */}
+                    {appliedPromo && (
+                      <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                        <span className="text-white">Code: {appliedPromo}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handlePromoRemove}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                    {/* Price Breakdown */}
+                    <div className="space-y-3 text-white/80">
+                      <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>₹{subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Shipping</span>
+                        <span>₹{shippingCost.toFixed(2)}</span>
+                      </div>
+                      {discount > 0 && (
+                        <div className="flex justify-between text-neon-cyan">
+                          <span>Discount</span>
+                          <span>-₹{discount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-white/10 pt-3 flex justify-between font-semibold text-white text-lg">
+                        <span>Total</span>
+                        <span>₹{total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    {/* Checkout Button */}
+                    <Button
+                      onClick={handleCheckout}
+                      className="w-full group relative h-14 overflow-hidden rounded-xl border-0 bg-transparent p-0 transition-all duration-500 hover:scale-[1.02]"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-black/90 to-gray-900/80 backdrop-blur-xl transition-all duration-500 group-hover:from-gray-800/90 group-hover:via-gray-900/95 group-hover:to-gray-800/90"></div>
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange p-[2px] group-hover:from-neon-cyan group-hover:via-neon-purple group-hover:to-neon-pink transition-all duration-500"></div>
+                      <div className="relative flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white text-lg">
+                        Proceed to Checkout
+                      </div>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
