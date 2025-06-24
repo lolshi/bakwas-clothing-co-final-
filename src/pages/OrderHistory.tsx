@@ -36,6 +36,12 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  product_image?: string;
+  variant_id?: string;
+  product_variants?: {
+    size: string;
+    color: string;
+  } | null;
 }
 
 const OrderHistory = () => {
@@ -83,10 +89,16 @@ const OrderHistory = () => {
         description: "Please wait while we generate your invoice...",
       });
 
-      // Fetch order items
+      // Fetch order items and their variants
       const { data: orderItems, error: itemsError } = await supabase
         .from('order_items')
-        .select('*')
+        .select(`
+          *,
+          product_variants (
+            size,
+            color
+          )
+        `)
         .eq('order_id', order.id);
 
       if (itemsError) {
@@ -117,7 +129,10 @@ const OrderHistory = () => {
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          total_price: item.total_price
+          total_price: item.total_price,
+          product_image: item.product_image,
+          size: item.product_variants?.size || 'N/A',
+          color: item.product_variants?.color || 'N/A'
         })),
         subtotal: order.subtotal || 0,
         shippingCost: order.shipping_cost || 0,

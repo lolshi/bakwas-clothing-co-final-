@@ -1,10 +1,14 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
+import { format } from 'date-fns';
 
 interface OrderItem {
   product_name: string;
   quantity: number;
   unit_price: number;
   total_price: number;
+  product_image?: string;
+  size?: string;
+  color?: string;
 }
 
 interface InvoiceData {
@@ -14,13 +18,15 @@ interface InvoiceData {
   customerEmail: string;
   customerPhone: string;
   shippingAddress: {
-    name: string;
-    streetAddress: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    phone: string;
+    name?: string;
+    streetAddress?: string; // from fallback
+    street_address?: string; // from db
+    city?: string;
+    state?: string;
+    postalCode?: string; // from fallback
+    postal_code?: string; // from db
+    country?: string;
+    phone?: string;
   };
   items: OrderItem[];
   subtotal: number;
@@ -31,195 +37,301 @@ interface InvoiceData {
   status: string;
 }
 
-// Function to convert image to base64
-const getImageAsBase64 = (imagePath: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
+// Utility function to safely format currency
+const formatCurrency = (amount: number): string => {
+  try {
+    // Using INR to avoid font rendering issues with the Rupee symbol (₹)
+    return `INR ${Number(amount || 0).toFixed(2)}`;
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    return `INR ${amount || 0}`;
+  }
+};
+
+// Utility function to safely format date
+const formatDate = (dateString: string): string => {
+  try {
+    return format(new Date(dateString), 'dd MMM yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+};
+
+// Function to convert image to base64 with timeout
+const getImageAsBase64 = (imagePath: string | null, timeout = 5000): Promise<string | null> => {
+  return new Promise((resolve) => {
+    if (!imagePath) {
+      resolve(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      console.warn('Image load timed out:', imagePath);
+      resolve(null);
+    }, timeout);
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/png');
-      resolve(dataURL);
+      clearTimeout(timeoutId);
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          console.warn('Could not get canvas context');
+          resolve(null);
+        }
+      } catch (error) {
+        console.error('Error converting image to base64:', error);
+        resolve(null);
+      }
     };
-    img.onerror = reject;
-    img.src = imagePath;
+
+    img.onerror = () => {
+      clearTimeout(timeoutId);
+      console.warn('Error loading image:', imagePath);
+      resolve(null);
+    };
+
+    const imageUrl = imagePath.startsWith('http') ? imagePath : `${window.location.origin}${imagePath}`;
+    img.src = imageUrl;
   });
 };
 
-export const generateInvoice = async (invoiceData: InvoiceData) => {
-  const doc = new jsPDF();
-  
-  // Add company logo
+export const generateInvoice = async (invoiceData: InvoiceData): Promise<jsPDF> => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  let y = 15;
+
   try {
+    // 1. Header Section with Logo and Company Details
     const logoBase64 = await getImageAsBase64('/lovable-uploads/97535d1c-cb3e-4d54-ab8b-54078a7ca53c.png');
-    doc.addImage(logoBase64, 'PNG', 20, 10, 30, 15);
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 15, y, 40, 20);
+    }
+
+    // Company Details (Right Aligned)
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SK77 Media Pvt LTD', 195, y + 5, { align: 'right' });
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('www.bakwas.com', 195, y + 15, { align: 'right' });
+
+    y += 30;
+
+    // 2. Invoice Title and Details
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, y, 180, 25, 'F');
+    
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INVOICE', 20, y + 15);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const invoiceDetails = [
+      `Invoice #: ${invoiceData.orderNumber || 'N/A'}`,
+      `Date: ${formatDate(invoiceData.orderDate || new Date().toISOString())}`,
+      `Status: ${invoiceData.status || 'N/A'}`,
+      `Payment: ${invoiceData.paymentStatus || 'N/A'}`
+    ];
+    
+    invoiceDetails.forEach((detail, index) => {
+      doc.text(detail, 195, y + 7 + (index * 5), { align: 'right' });
+    });
+
+    y += 35;
+
+    // 3. Customer Information Section
+    // Billing Info
+    doc.setFillColor(250, 250, 250);
+    doc.rect(15, y, 85, 40, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(15, y, 85, 40, 'S');
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Bill To', 20, y + 7);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoiceData.customerName || '', 20, y + 15);
+    doc.text(invoiceData.customerEmail || '', 20, y + 22);
+    doc.text(invoiceData.customerPhone || '', 20, y + 29);
+
+    // Shipping Info
+    doc.setFillColor(250, 250, 250);
+    doc.rect(110, y, 85, 40, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(110, y, 85, 40, 'S');
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Ship To', 115, y + 7);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    const sa = invoiceData.shippingAddress || {};
+    const street = sa.streetAddress || sa.street_address || '';
+    const city = sa.city || '';
+    const state = sa.state || '';
+    const postal = sa.postalCode || sa.postal_code || '';
+
+    const shippingAddress = [
+      sa.name || invoiceData.customerName || '',
+      street,
+      `${city}${city && state ? ', ' : ''}${state}${postal ? ' ' : ''}${postal}`,
+      sa.country || '',
+      `Phone: ${sa.phone || invoiceData.customerPhone || ''}`
+    ].filter(line => line && String(line).trim() !== '' && String(line).trim() !== ',');
+    
+    const boxWidth = 85;
+    const padding = 5;
+    const maxWidth = boxWidth - (padding * 2);
+    let currentY = y + 15;
+
+    shippingAddress.forEach(line => {
+      const lines = doc.splitTextToSize(String(line), maxWidth);
+      doc.text(lines, 115, currentY);
+      currentY += (lines.length * 5); // Move Y for next line(s)
+    });
+
+
+    y += 50;
+
+    // 4. Items Table
+    // Table Header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, y, 180, 10, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(15, y, 180, 10, 'S');
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Product', 20, y + 7);
+    doc.text('Variant', 85, y + 7);
+    doc.text('Price', 135, y + 7, {align: 'right'});
+    doc.text('Qty', 155, y + 7, {align: 'center'});
+    doc.text('Total', 185, y + 7, {align: 'right'});
+
+    y += 10;
+
+    // Table Body
+    for (const item of invoiceData.items) {
+      const rowHeight = 20;
+      const textY = y + (rowHeight / 2) - 2; // Center text vertically
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(15, y, 180, rowHeight, 'S');
+
+      const imageBase64 = await getImageAsBase64(item.product_image || null);
+      if (imageBase64) {
+        doc.addImage(imageBase64, 'PNG', 17, y + 2, 16, 16);
+      }
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(item.product_name || 'N/A', 35, textY);
+      
+      // Variant
+      const variantText = `${item.size || 'N/A'}`;
+      doc.text(variantText, 85, textY);
+
+      if (item.color && item.color.startsWith('#')) {
+        try {
+          doc.setFillColor(item.color);
+          doc.circle(87, textY + 4, 3, 'F'); // Draw circle below size
+          doc.text(item.color, 92, textY + 5);
+        } catch(e) {
+          console.error("Failed to draw color circle:", e);
+          doc.text(item.color, 85, textY + 5); // fallback for color text
+        }
+      } else if (item.color) {
+        doc.text(item.color, 85, textY + 5);
+      }
+
+      doc.text(formatCurrency(item.unit_price), 135, textY, {align: 'right'});
+      doc.text(String(item.quantity || 0), 155, textY, {align: 'center'});
+      doc.text(formatCurrency(item.total_price), 185, textY, {align: 'right'});
+
+      y += rowHeight;
+    }
+
+    // 5. Summary Section
+    y += 10;
+    const summaryX = 140;
+    const summaryItems = [
+      { label: 'Subtotal:', value: formatCurrency(invoiceData.subtotal) },
+      { label: 'Shipping:', value: formatCurrency(invoiceData.shippingCost) }
+    ];
+
+    if (invoiceData.discountAmount > 0) {
+      summaryItems.push({
+        label: 'Discount:',
+        value: `-${formatCurrency(invoiceData.discountAmount)}`
+      });
+    }
+
+    // Draw summary box
+    const summaryHeight = (summaryItems.length + 1) * 8 + 10;
+    doc.setFillColor(250, 250, 250);
+    doc.rect(summaryX - 5, y, 60, summaryHeight, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(summaryX - 5, y, 60, summaryHeight, 'S');
+
+    // Add summary items
+    summaryItems.forEach((item, index) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(item.label, summaryX, y + 8 + (index * 8));
+      doc.text(item.value, 195, y + 8 + (index * 8), { align: 'right' });
+    });
+
+    // Total
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Total:', summaryX, y + 8 + (summaryItems.length * 8));
+    doc.text(formatCurrency(invoiceData.totalAmount), 195, y + 8 + (summaryItems.length * 8), { align: 'right' });
+
+    // 6. Footer
+    const footerY = doc.internal.pageSize.height - 10;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128, 128, 128);
+    doc.text('Thank you for shopping with Bakwas!', doc.internal.pageSize.width / 2, footerY, {
+      align: 'center'
+    });
+
+    return doc;
   } catch (error) {
-    console.log('Logo not available:', error);
+    const err = error as Error;
+    console.error('Error generating invoice:', err);
+    throw new Error(`Failed to generate invoice: ${err.message}`);
   }
-  
-  // Company Header (positioned to avoid overlap with INVOICE)
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('SK77 MEDIA PVT LTD', 20, 35);
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('TRIP TESTED STREET CERTIFIED', 20, 45);
-  doc.text('Email: support@bakwasclothingco.com', 20, 55);
-  
-  // Invoice Title (positioned on the right)
-  doc.setFontSize(24);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('INVOICE', 150, 25);
-  
-  // Invoice Details
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Invoice #: ${invoiceData.orderNumber}`, 150, 40);
-  doc.text(`Date: ${invoiceData.orderDate}`, 150, 50);
-  doc.text(`Status: ${invoiceData.status.toUpperCase()}`, 150, 60);
-  doc.text(`Payment: ${invoiceData.paymentStatus.toUpperCase()}`, 150, 70);
-  
-  // Customer Information
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('BILL TO:', 20, 85);
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(invoiceData.customerName, 20, 100);
-  doc.text(invoiceData.customerEmail, 20, 110);
-  doc.text(invoiceData.customerPhone, 20, 120);
-  
-  // Shipping Address
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('SHIP TO:', 110, 85);
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(invoiceData.shippingAddress.name, 110, 100);
-  doc.text(invoiceData.shippingAddress.streetAddress, 110, 110);
-  doc.text(`${invoiceData.shippingAddress.city}, ${invoiceData.shippingAddress.state}`, 110, 120);
-  doc.text(`${invoiceData.shippingAddress.postalCode}, ${invoiceData.shippingAddress.country}`, 110, 130);
-  doc.text(invoiceData.shippingAddress.phone, 110, 140);
-  
-  // Items Table Header
-  let currentY = 155;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  
-  // Header text without background box - align headers with data
-  doc.setTextColor(0, 0, 0);
-  doc.text('Product', 25, currentY);
-  doc.text('Qty', 95, currentY);
-  
-  // Right-align headers to match price positioning
-  const unitPriceHeader = 'Unit Price';
-  const totalHeader = 'Total';
-  const unitPriceHeaderWidth = doc.getTextWidth(unitPriceHeader);
-  const totalHeaderWidth = doc.getTextWidth(totalHeader);
-  
-  doc.text(unitPriceHeader, 150 - unitPriceHeaderWidth, currentY);
-  doc.text(totalHeader, 190 - totalHeaderWidth, currentY);
-  
-  // Add a line under headers
-  doc.setDrawColor(0, 0, 0);
-  doc.line(20, currentY + 3, 190, currentY + 3);
-  
-  doc.setFont('helvetica', 'normal');
-  
-  currentY += 20;
-  
-  // Items Table Body
-  invoiceData.items.forEach((item, index) => {
-    // No background boxes - clean borderless design
-    
-    // Truncate product name if too long
-    const productName = item.product_name.length > 18 ? 
-      item.product_name.substring(0, 18) + '...' : 
-      item.product_name;
-    
-    doc.text(productName, 25, currentY);
-    doc.text(item.quantity.toString(), 98, currentY);
-    
-    // Right-align prices with plenty of space
-    const unitPrice = `₹${item.unit_price.toFixed(2)}`;
-    const totalPrice = `₹${item.total_price.toFixed(2)}`;
-    
-    // Calculate text width and position with generous spacing
-    const unitPriceWidth = doc.getTextWidth(unitPrice);
-    const totalPriceWidth = doc.getTextWidth(totalPrice);
-    
-    // Position prices with plenty of room
-    doc.text(unitPrice, 150 - unitPriceWidth, currentY);
-    doc.text(totalPrice, 190 - totalPriceWidth, currentY);
-    
-    currentY += 15;
-  });
-  
-  // Add a line after items
-  doc.setDrawColor(0, 0, 0);
-  doc.line(20, currentY + 5, 190, currentY + 5);
-  
-  currentY += 20;
-  
-  // Summary (right-aligned for better fit)
-  const summaryX = 105;
-  const valueX = 190;
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  
-  doc.text('Subtotal:', summaryX, currentY);
-  const subtotalText = `₹${invoiceData.subtotal.toFixed(2)}`;
-  doc.text(subtotalText, valueX - doc.getTextWidth(subtotalText), currentY);
-  currentY += 10;
-  
-  if (invoiceData.discountAmount > 0) {
-    doc.text('Discount:', summaryX, currentY);
-    const discountText = `-₹${invoiceData.discountAmount.toFixed(2)}`;
-    doc.text(discountText, valueX - doc.getTextWidth(discountText), currentY);
-    currentY += 10;
-  }
-  
-  doc.text('Shipping:', summaryX, currentY);
-  const shippingText = `₹${invoiceData.shippingCost.toFixed(2)}`;
-  doc.text(shippingText, valueX - doc.getTextWidth(shippingText), currentY);
-  currentY += 15;
-  
-  // Total
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('TOTAL:', summaryX, currentY);
-  const totalText = `₹${invoiceData.totalAmount.toFixed(2)}`;
-  doc.text(totalText, valueX - doc.getTextWidth(totalText), currentY);
-  currentY += 30;
-  
-  // Footer
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0);
-  doc.text('Thank you for your business!', 20, currentY);
-  doc.text('For any queries, contact us at support@bakwasclothingco.com', 20, currentY + 10);
-  
-  // Terms and Conditions
-  doc.setFontSize(8);
-  doc.text('Terms & Conditions:', 20, currentY + 25);
-  doc.text('1. All sales are final unless defective.', 20, currentY + 35);
-  doc.text('2. Returns accepted within 7 days of delivery.', 20, currentY + 45);
-  doc.text('3. Shipping charges are non-refundable.', 20, currentY + 55);
-  
-  return doc;
 };
 
-export const downloadInvoice = async (invoiceData: InvoiceData) => {
-  const doc = await generateInvoice(invoiceData);
-  doc.save(`Invoice-${invoiceData.orderNumber}.pdf`);
+export const downloadInvoice = async (invoiceData: InvoiceData): Promise<void> => {
+  try {
+    const doc = await generateInvoice(invoiceData);
+    const fileName = `invoice-${invoiceData.orderNumber}-${Date.now()}.pdf`;
+    doc.save(fileName);
+  } catch (error) {
+    const err = error as Error;
+    console.error('Failed to generate invoice PDF:', err);
+    throw new Error(`Failed to download invoice: ${err.message}`);
+  }
 }; 

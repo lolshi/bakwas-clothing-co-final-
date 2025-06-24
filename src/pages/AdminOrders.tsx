@@ -83,6 +83,9 @@ interface Order {
   created_at: string | null;
   shipping_address?: any;
   payment_status: string | null;
+  subtotal: number | null;
+  shipping_cost: number | null;
+  discount_amount: number | null;
   order_items?: OrderItem[];
 }
 
@@ -95,6 +98,10 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  product_variants?: {
+    size: string;
+    color: string;
+  } | null;
 }
 
 interface OrderStats {
@@ -643,38 +650,65 @@ const AdminOrders = () => {
 
   const handleDownloadInvoice = async (orderId: string) => {
     try {
-      if (!selectedOrder) return;
+      const order = orders.find(o => o.id === orderId);
+      if (!order) {
+        toast.error('Order not found.');
+        return;
+      }
       
       toast.info('Preparing invoice for download...');
 
+      const { data: fetchedOrderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select(`
+          *,
+          product_variants (
+            size,
+            color
+          )
+        `)
+        .eq('order_id', orderId);
+
+      if (itemsError) {
+        throw new Error(`Failed to fetch order items: ${itemsError.message}`);
+      }
+
+      if (!fetchedOrderItems || fetchedOrderItems.length === 0) {
+        throw new Error('No order items found for this order.');
+      }
+
       // Prepare invoice data
       const invoiceData = {
-        orderNumber: selectedOrder.order_number,
-        orderDate: format(new Date(selectedOrder.created_at || ''), 'MMM dd, yyyy'),
-        customerName: selectedOrder.customer_name,
-        customerEmail: selectedOrder.customer_email,
-        customerPhone: selectedOrder.customer_phone || '',
-        shippingAddress: selectedOrder.shipping_address || {
-          name: selectedOrder.customer_name,
+        orderNumber: order.order_number,
+        orderDate: format(new Date(order.created_at || ''), 'MMM dd, yyyy'),
+        customerName: order.customer_name,
+        customerEmail: order.customer_email,
+        customerPhone: order.customer_phone || '',
+        shippingAddress: order.shipping_address || {
+          name: order.customer_name,
           streetAddress: 'Address not available',
           city: '',
           state: '',
           postalCode: '',
           country: 'India',
-          phone: selectedOrder.customer_phone || ''
+          phone: order.customer_phone || ''
         },
-        items: orderItems.map(item => ({
+        items: fetchedOrderItems.map(item => ({
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          total_price: item.total_price
+          total_price: item.total_price,
+          product_image: item.product_image,
+          size: item.product_variants?.size || 'N/A',
+          color: item.product_variants?.color || 'N/A',
         })),
-        subtotal: orderItems.reduce((sum, item) => sum + item.total_price, 0),
-        shippingCost: 0, // Add shipping cost if available in your order data
-        discountAmount: 0, // Add discount if available in your order data
-        totalAmount: selectedOrder.total_amount,
-        paymentStatus: selectedOrder.payment_status || 'pending',
-        status: selectedOrder.status || 'pending'
+    
+        subtotal: order.subtotal || 0,
+        shippingCost: order.shipping_cost || 0,
+        discountAmount: order.discount_amount || 0,
+        totalAmount: order.total_amount,
+        paymentStatus: order.payment_status || 'pending',
+        status: order.status || 'pending'
       };
 
       // Generate and download invoice using the utility function
@@ -683,7 +717,7 @@ const AdminOrders = () => {
       toast.success('Invoice downloaded successfully');
     } catch (error) {
       console.error('Error downloading invoice:', error);
-      toast.error('Failed to download invoice');
+      toast.error(error instanceof Error ? error.message : 'Failed to download invoice');
     }
   };
 
@@ -1422,15 +1456,15 @@ const AdminOrders = () => {
                           <div className="space-y-3">
                             <div className="flex justify-between text-gray-700 dark:text-gray-300">
                               <span>Subtotal</span>
-                              <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                              <span>{formatCurrency(selectedOrder.subtotal || 0)}</span>
                             </div>
                             <div className="flex justify-between text-gray-700 dark:text-gray-300">
                               <span>Shipping</span>
-                              <span>Free</span>
+                              <span>{formatCurrency(selectedOrder.shipping_cost || 0)}</span>
                             </div>
                             <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                              <span>Tax</span>
-                              <span>Included</span>
+                              <span>Discount</span>
+                              <span>{formatCurrency(selectedOrder.discount_amount || 0)}</span>
                             </div>
                             <div className="flex justify-between font-semibold text-lg border-t dark:border-gray-700 pt-3 mt-3 text-gray-800 dark:text-gray-100">
                               <span>Total</span>
